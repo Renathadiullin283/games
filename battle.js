@@ -133,6 +133,11 @@ class BattleSystem {
     
     this.canvas.width = 400;
     this.canvas.height = 200;
+            setTimeout(() => {
+    this.removeBattleButtons();
+    this.addTravelUI();
+    this.addSkillUI();
+  }, 100);
     
     // Показываем выбор локаций при инициализации
     this.showLocationSelection();
