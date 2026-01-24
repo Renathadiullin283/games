@@ -34,6 +34,7 @@
 <script type="module">
 import { startRun } from "./battle.js";
 import { player } from "./game.js";
+import { loadPlayer, savePlayer } from "./telegramSave.js";
 import { LOCATIONS } from "./data.js";
 
 const hudHP = document.getElementById("hp");
@@ -82,6 +83,24 @@ document.getElementById("btn-inventory").onclick = () => {
 document.getElementById("btn-shop").onclick = () => {
   alert("Магазин пока пустой (заготовка)");
 };
+// Функция инициализации Telegram WebApp
+async function initTelegram() {
+  if (window.Telegram?.WebApp) {
+    Telegram.WebApp.ready();
+    Telegram.WebApp.expand();
+    console.log("Запущено в Telegram:", Telegram.WebApp.initDataUnsafe.user);
+
+    const savedPlayer = await loadPlayer(player);
+    Object.assign(player, savedPlayer); // загружаем прогресс
+  }
+}
+
+initTelegram();
+
+// После любого изменения игрока, вызываем:
+function onPlayerUpdate() {
+  savePlayer(player);
+}
 </script>
 
 </body>
