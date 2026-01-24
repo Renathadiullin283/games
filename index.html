@@ -8,16 +8,15 @@
 
 <h2>Stickman Idle RPG (DEBUG)</h2>
 
+<canvas id="game" width="400" height="200"></canvas>
+<br />
 <button onclick="startRun()">Отправиться в локацию</button>
 
 <pre id="log"></pre>
 
 <script type="module">
   import { startRun } from "./battle.js";
-
-  window.startRun = () => {
-    startRun("factory");
-  };
+  window.startRun = () => startRun("factory");
 </script>
 
 </body>
