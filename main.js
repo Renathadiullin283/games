@@ -9,12 +9,20 @@ import {
   generateRandomItem,
   ITEM_RARITY  // Убедитесь, что импортируется
 } from './inventory.js';
+import { 
+    ShopSystem, 
+    SHOP_CATEGORIES, 
+    initializeShopUI, 
+    initializeShopTabs, 
+    updateRefreshInfo 
+  } from './shop.js';
 
 class SceneManager {
   constructor() {
     this.currentScene = 'menu';
     this.scenes = {};
     this.inventorySystem = null;
+    this.shopSystem = null;
     this.init();
   }
 
@@ -37,7 +45,8 @@ class SceneManager {
     
     // Инициализируем систему инвентаря
     this.inventorySystem = new InventorySystem(player);
-    
+    // Инициализируем систему магазина
+    this.shopSystem = new ShopSystem(player, this.inventorySystem);
     this.initEventListeners();
     this.updateAllDisplays();
     this.showScene('menu');
@@ -508,13 +517,30 @@ class SceneManager {
     }
   }
 
-  updateShop() {
+ updateShop() {
+    if (!player || !this.shopSystem) return;
+    
+    // Обновляем баланс
     const shopGold = document.getElementById('shop-gold');
-    if (shopGold && player) {
+    if (shopGold) {
       shopGold.textContent = player.gold;
     }
+    
+    // Обновляем кристаллы (если будут)
+    const shopGems = document.getElementById('shop-gems');
+    if (shopGems) {
+      shopGems.textContent = player.gems || 0;
+    }
+    
+    // Инициализируем вкладки магазина
+    initializeShopTabs(this.shopSystem, player);
+    
+    // Инициализируем товары
+    initializeShopUI(this.shopSystem, player);
+    
+    // Обновляем информацию об обновлении
+    updateRefreshInfo(this.shopSystem, player);
   }
-
   updateSkills() {
     // TODO: Добавить логику навыков
   }
