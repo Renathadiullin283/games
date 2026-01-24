@@ -1,16 +1,16 @@
 import { player, resetPlayerHp } from "./game.js";
 import { LOCATIONS } from "./data.js";
 import { clear, drawStickman, drawHpBar, spawnDamageText, updateDamageTexts, screenShake } from "./render.js";
-import { savePlayer } from "./telegramSave.js"; // Импорт должен быть в начале файла
+import { savePlayer } from "./telegramSave.js";
 
 const logEl = document.getElementById("log");
 
 let enemy = null;
 let enemyMaxHp = 0;
 let attackPhase = 0;
-let animationId = null; // Добавляем переменную для контроля анимации
+let animationId = null;
+let gameInterval = null;
 
-// Обновление HUD
 function updateHUD() {
   document.getElementById("hp").textContent = `HP: ${player.currentHp}`;
   document.getElementById("gold").textContent = `Gold: ${player.gold}`;
@@ -18,70 +18,63 @@ function updateHUD() {
 }
 
 export function startRun(locationId) {
+  // Останавливаем предыдущую игру
+  stopGame();
+  
   logEl.textContent = "";
   const location = LOCATIONS[locationId];
   resetPlayerHp();
+  
+  updateHUD();
 
   let enemyIndex = 0;
   spawnEnemy(enemyIndex, location);
+  log(`⚔️ Встречен враг ${enemyIndex + 1}/${location.enemies}`);
 
-  // Останавливаем предыдущую анимацию, если есть
-  if (animationId) {
-    cancelAnimationFrame(animationId);
-  }
-
-  const interval = setInterval(() => {
+  gameInterval = setInterval(() => {
     if (player.currentHp <= 0) {
       log("❌ Персонаж погиб");
-      clearInterval(interval);
-      stopAnimation(); // Останавливаем анимацию
-      savePlayer(player); // Сохраняем прогресс
+      stopGame();
+      savePlayer(player);
       return;
     }
 
     if (enemyIndex >= location.enemies) {
       log("✅ Локация зачищена");
-      clearInterval(interval);
-      stopAnimation(); // Останавливаем анимацию
-      
-      // Награда за прохождение локации
+      log(`🏆 Получено: 50 золота и 1 уровень опыта`);
       player.gold += 50;
       player.level += 1;
-      savePlayer(player); // Сохраняем прогресс
-      
+      stopGame();
+      savePlayer(player);
       return;
     }
 
     // Атака игрока
     const crit = Math.random() < player.stats.crit;
     const damage = crit ? player.stats.atk * 2 : player.stats.atk;
-
     enemy.hp -= damage;
     spawnDamageText(280, 90, `-${damage}`, crit);
-
     if (crit) screenShake(8);
-
     attackPhase = 10;
 
     if (enemy.hp <= 0) {
-      // Награда за убитого врага
-      player.gold += 10; // Маленькая награда за каждого врага
-      log(`💰 Получено 10 золота за убийство врага`);
-      
+      log(`💀 Враг ${enemyIndex + 1} побежден!`);
+      player.gold += 10; // Награда за врага
       enemyIndex++;
+      
       if (enemyIndex >= location.enemies) {
-        log("🏆 Все враги побеждены");
-        clearInterval(interval);
-        stopAnimation(); // Останавливаем анимацию
-        
-        // Финальная награда
+        log("🏆 Все враги побеждены!");
+        log(`🏆 Получено: 50 золота и 1 уровень опыта`);
         player.gold += 50;
         player.level += 1;
+        stopGame();
         savePlayer(player);
-        
         return;
       }
+      
+      log(`⚔️ Встречен враг ${enemyIndex + 1}/${location.enemies}`);
       spawnEnemy(enemyIndex, location);
+      savePlayer(player); // Сохраняем после каждого убитого врага
       return;
     }
 
@@ -89,11 +82,11 @@ export function startRun(locationId) {
     const incoming = Math.max(enemy.atk - player.stats.def, 1);
     player.currentHp -= incoming;
     spawnDamageText(120, 90, `-${incoming}`);
-
     updateHUD();
+    
   }, 1000);
 
-  animate(); // Запускаем анимацию
+  animate();
 }
 
 function spawnEnemy(index, location) {
@@ -105,9 +98,10 @@ function spawnEnemy(index, location) {
 }
 
 function animate() {
+  if (!gameInterval) return; // Не анимируем, если игра не запущена
+  
   clear();
 
-  // Анимация удара
   const playerOffset = attackPhase > 0 ? (attackPhase > 5 ? 5 : -5) : 0;
   if (attackPhase > 0) attackPhase--;
 
@@ -116,16 +110,21 @@ function animate() {
   drawHpBar(70, 20, 60, 6, player.currentHp, player.maxHp);
 
   // Враг
-  drawStickman(300, 120, "#b00");
-  drawHpBar(270, 20, 60, 6, enemy.hp, enemyMaxHp);
+  if (enemy) {
+    drawStickman(300, 120, "#b00");
+    drawHpBar(270, 20, 60, 6, enemy.hp, enemyMaxHp);
+  }
 
   updateDamageTexts();
 
-  // Сохраняем ID анимации для возможности остановки
   animationId = requestAnimationFrame(animate);
 }
 
-function stopAnimation() {
+function stopGame() {
+  if (gameInterval) {
+    clearInterval(gameInterval);
+    gameInterval = null;
+  }
   if (animationId) {
     cancelAnimationFrame(animationId);
     animationId = null;
@@ -134,4 +133,5 @@ function stopAnimation() {
 
 function log(text) {
   logEl.textContent += text + "\n";
+  logEl.scrollTop = logEl.scrollHeight;
 }
