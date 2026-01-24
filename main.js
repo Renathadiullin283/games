@@ -4,12 +4,11 @@ import { savePlayer, loadPlayer, debugSaveSystem } from './telegramSave.js';
 import { startBattle } from './battle.js';
 import { LOCATIONS } from './data.js';
 import { 
-          InventorySystem, 
-          ITEMS_DB, 
-          generateRandomItem,
-          ITEM_RARITY  // Добавьте эту строку
-        } from './inventory.js';
-
+  InventorySystem, 
+  ITEMS_DB, 
+  generateRandomItem,
+  ITEM_RARITY  // Убедитесь, что импортируется
+} from './inventory.js';
 
 class SceneManager {
   constructor() {
@@ -35,8 +34,10 @@ class SceneManager {
     // Ждём загрузку игрока
     await playerReady;
     console.log('✅ Игрок загружен:', player);
-
+    
+    // Инициализируем систему инвентаря
     this.inventorySystem = new InventorySystem(player);
+    
     this.initEventListeners();
     this.updateAllDisplays();
     this.showScene('menu');
@@ -45,10 +46,12 @@ class SceneManager {
     if (this.inventorySystem.items.length === 0) {
       this.addTestItems();
     }
+    
     console.log('🎮 Игра готова!');
   }
 
-    addTestItems() {
+  // Добавляем тестовые предметы (для демонстрации)
+  addTestItems() {
     console.log('📦 Добавляем тестовые предметы...');
     
     this.inventorySystem.addItem(ITEMS_DB.sword_beginner);
@@ -58,190 +61,6 @@ class SceneManager {
     this.inventorySystem.addItem(generateRandomItem(1, 3));
     
     console.log('✅ Тестовые предметы добавлены');
-  }
-
-  showScene(sceneName) {
-    // Скрываем все сцены
-    Object.values(this.scenes).forEach(scene => {
-      scene.classList.remove('active');
-    });
-    
-    // Показываем выбранную сцену
-    if (this.scenes[sceneName]) {
-      this.scenes[sceneName].classList.add('active');
-      this.currentScene = sceneName;
-      
-      // Обновляем данные на сцене
-      this.updateScene(sceneName);
-      
-      console.log(`🔄 Переключились на сцену: ${sceneName}`);
-    }
-  }
-
-  updateScene(sceneName) {
-    switch (sceneName) {
-      case 'menu':
-        this.updateMenu();
-        break;
-      case 'battle':
-        this.updateBattle();
-        break;
-      case 'inventory':
-        this.updateInventory();
-        break;
-      case 'shop':
-        this.updateShop();
-        break;
-      case 'skills':
-        this.updateSkills();
-        break;
-      case 'options':
-        this.updateOptions();
-        break;
-    }
-  }
-
-  updateAllDisplays() {
-    this.updateMenu();
-    this.updateBattle();
-    this.updateInventory();
-    this.updateShop();
-  }
-
-  updateMenu() {
-    if (!player) return;
-    
-    const menuLevel = document.getElementById('menu-level');
-    const menuGold = document.getElementById('menu-gold');
-    const menuClass = document.getElementById('menu-class');
-    const menuHp = document.getElementById('menu-hp');
-    const menuHpBar = document.getElementById('menu-hp-bar');
-    
-    if (menuLevel) menuLevel.textContent = player.level;
-    if (menuGold) menuGold.textContent = player.gold;
-    if (menuClass) menuClass.textContent = player.classId === 'warrior' ? 'Воин' : 'Ассасин';
-    if (menuHp) menuHp.textContent = `${player.currentHp}/${player.maxHp}`;
-    
-    if (menuHpBar) {
-      const hpPercent = (player.currentHp / player.maxHp) * 100;
-      menuHpBar.style.width = `${hpPercent}%`;
-    }
-  }
-
-  updateBattle() {
-    if (!player) return;
-    
-    // Обновляем HUD элементы только если они существуют
-    const battleLevel = document.getElementById('battle-level');
-    const battleGold = document.getElementById('battle-gold');
-    const battleHp = document.getElementById('battle-hp');
-    const battleAtk = document.getElementById('battle-atk');
-    const battleDef = document.getElementById('battle-def');
-    const battleProgress = document.getElementById('battle-progress');
-    const battleEnemies = document.getElementById('battle-enemies');
-    
-    if (battleLevel) battleLevel.textContent = player.level;
-    if (battleGold) battleGold.textContent = player.gold;
-    if (battleHp) battleHp.textContent = `${player.currentHp}/${player.maxHp}`;
-    if (battleAtk) battleAtk.textContent = player.stats.atk;
-    if (battleDef) battleDef.textContent = player.stats.def;
-    
-    // Обновляем информацию о классе в HUD битвы
-    this.updateBattleClassInfo();
-    
-    // Обновляем список локаций, только если сцена битвы активна
-    if (this.currentScene === 'battle') {
-      this.updateLocationList();
-    }
-  }
-
-  updateBattleClassInfo() {
-    const battleHUD = document.querySelector('.battle-hud');
-    if (battleHUD && player) {
-      // Удаляем старую информацию
-      const existingClassInfo = battleHUD.querySelector('.player-class-info');
-      if (existingClassInfo) {
-        existingClassInfo.remove();
-      }
-      
-      // Добавляем новую информацию
-      const classInfo = document.createElement('div');
-      classInfo.className = 'player-class-info';
-      classInfo.innerHTML = `Класс: ${player.classId === 'warrior' ? '⚔️ Воин' : '🗡️ Ассасин'}`;
-      classInfo.style.cssText = `
-        grid-column: span 3;
-        background: rgba(255, 255, 255, 0.05);
-        padding: 5px 10px;
-        border-radius: 5px;
-        margin-top: 5px;
-        font-size: 0.9em;
-        text-align: center;
-        color: ${player.classId === 'warrior' ? '#4cd137' : '#9b59b6'};
-      `;
-      battleHUD.appendChild(classInfo);
-    }
-  }
-
-  updateLocationList() {
-    const locationList = document.getElementById('location-list');
-    if (!locationList) return;
-    
-    locationList.innerHTML = '';
-    
-    // Сортируем локации по уровню
-    const sortedLocations = Object.entries(LOCATIONS).sort(([, a], [, b]) => a.level - b.level);
-    
-    for (const [locId, loc] of sortedLocations) {
-      const btn = document.createElement('div');
-      btn.className = 'location-btn';
-      
-      // Проверяем доступность локации
-      const isAvailable = player.level >= loc.level;
-      const isLocked = !isAvailable;
-      
-      if (isLocked) {
-        btn.style.opacity = '0.6';
-        btn.style.cursor = 'not-allowed';
-        btn.style.filter = 'grayscale(0.5)';
-      }
-      
-      // Определяем иконку локации
-      let icon = '📍';
-      if (loc.name.includes('Завод')) icon = '🏭';
-      if (loc.name.includes('Лес')) icon = '🌲';
-      if (loc.name.includes('Подземелье')) icon = '🏰';
-      
-      btn.innerHTML = `
-        <div class="location-icon">${icon}</div>
-        <div class="location-details">
-          <strong>${loc.name}</strong>
-          <div class="location-stats">
-            <span>📊 Ур. ${loc.level}</span>
-            <span>👾 Врагов: ${loc.enemies}</span>
-            <span>❤️ HP: ${loc.enemyHp}</span>
-            <span>⚔️ ATK: ${loc.enemyAtk}</span>
-          </div>
-          ${isLocked ? '<div class="location-lock">🔒 Требуется уровень ' + loc.level + '</div>' : ''}
-        </div>
-      `;
-      
-      if (isAvailable) {
-        btn.onclick = () => {
-          console.log(`🎮 Выбрана локация: ${loc.name}`);
-          // Переключаемся на игровой интерфейс
-          const locationSelection = document.getElementById('location-selection');
-          const battleGame = document.getElementById('battle-game');
-          
-          if (locationSelection) locationSelection.style.display = 'none';
-          if (battleGame) battleGame.style.display = 'block';
-          
-          // Запускаем битву
-          startBattle(locId);
-        };
-      }
-      
-      locationList.appendChild(btn);
-    }
   }
 
   // Обновлённый метод updateInventory:
@@ -304,6 +123,7 @@ class SceneManager {
 
   // Создание элемента предмета
   createInventoryItemElement(item) {
+    // Используем импортированную ITEM_RARITY
     const rarity = ITEM_RARITY[item.rarity] || ITEM_RARITY.common;
     
     const itemEl = document.createElement('div');
@@ -503,6 +323,190 @@ class SceneManager {
     }, 2000);
   }
 
+  // Обновлённый метод showScene
+  showScene(sceneName) {
+    // Скрываем все сцены
+    Object.values(this.scenes).forEach(scene => {
+      scene.classList.remove('active');
+    });
+    
+    // Показываем выбранную сцену
+    if (this.scenes[sceneName]) {
+      this.scenes[sceneName].classList.add('active');
+      this.currentScene = sceneName;
+      
+      // Обновляем данные на сцене
+      this.updateScene(sceneName);
+      
+      console.log(`🔄 Переключились на сцену: ${sceneName}`);
+    }
+  }
+
+  updateScene(sceneName) {
+    switch (sceneName) {
+      case 'menu':
+        this.updateMenu();
+        break;
+      case 'battle':
+        this.updateBattle();
+        break;
+      case 'inventory':
+        this.updateInventory();
+        break;
+      case 'shop':
+        this.updateShop();
+        break;
+      case 'skills':
+        this.updateSkills();
+        break;
+      case 'options':
+        this.updateOptions();
+        break;
+    }
+  }
+
+  updateAllDisplays() {
+    this.updateMenu();
+    this.updateBattle();
+    this.updateInventory();
+    this.updateShop();
+  }
+
+  updateMenu() {
+    if (!player) return;
+    
+    const menuLevel = document.getElementById('menu-level');
+    const menuGold = document.getElementById('menu-gold');
+    const menuClass = document.getElementById('menu-class');
+    const menuHp = document.getElementById('menu-hp');
+    const menuHpBar = document.getElementById('menu-hp-bar');
+    
+    if (menuLevel) menuLevel.textContent = player.level;
+    if (menuGold) menuGold.textContent = player.gold;
+    if (menuClass) menuClass.textContent = player.classId === 'warrior' ? 'Воин' : 'Ассасин';
+    if (menuHp) menuHp.textContent = `${player.currentHp}/${player.maxHp}`;
+    
+    if (menuHpBar) {
+      const hpPercent = (player.currentHp / player.maxHp) * 100;
+      menuHpBar.style.width = `${hpPercent}%`;
+    }
+  }
+
+  updateBattle() {
+    if (!player) return;
+    
+    // Обновляем HUD элементы только если они существуют
+    const battleLevel = document.getElementById('battle-level');
+    const battleGold = document.getElementById('battle-gold');
+    const battleHp = document.getElementById('battle-hp');
+    const battleAtk = document.getElementById('battle-atk');
+    const battleDef = document.getElementById('battle-def');
+    const battleProgress = document.getElementById('battle-progress');
+    const battleEnemies = document.getElementById('battle-enemies');
+    
+    if (battleLevel) battleLevel.textContent = player.level;
+    if (battleGold) battleGold.textContent = player.gold;
+    if (battleHp) battleHp.textContent = `${player.currentHp}/${player.maxHp}`;
+    if (battleAtk) battleAtk.textContent = player.stats.atk;
+    if (battleDef) battleDef.textContent = player.stats.def;
+    
+    // Обновляем информацию о классе в HUD битвы
+    this.updateBattleClassInfo();
+    
+    // Обновляем список локаций, только если сцена битвы активна
+    if (this.currentScene === 'battle') {
+      this.updateLocationList();
+    }
+  }
+
+  updateBattleClassInfo() {
+    const battleHUD = document.querySelector('.battle-hud');
+    if (battleHUD && player) {
+      // Удаляем старую информацию
+      const existingClassInfo = battleHUD.querySelector('.player-class-info');
+      if (existingClassInfo) {
+        existingClassInfo.remove();
+      }
+      
+      // Добавляем новую информацию
+      const classInfo = document.createElement('div');
+      classInfo.className = 'player-class-info';
+      classInfo.innerHTML = `Класс: ${player.classId === 'warrior' ? '⚔️ Воин' : '🗡️ Ассасин'}`;
+      classInfo.style.cssText = `
+        grid-column: span 3;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 5px 10px;
+        border-radius: 5px;
+        margin-top: 5px;
+        font-size: 0.9em;
+        text-align: center;
+        color: ${player.classId === 'warrior' ? '#4cd137' : '#9b59b6'};
+      `;
+      battleHUD.appendChild(classInfo);
+    }
+  }
+
+  updateLocationList() {
+    const locationList = document.getElementById('location-list');
+    if (!locationList) return;
+    
+    locationList.innerHTML = '';
+    
+    // Сортируем локации по уровню
+    const sortedLocations = Object.entries(LOCATIONS).sort(([, a], [, b]) => a.level - b.level);
+    
+    for (const [locId, loc] of sortedLocations) {
+      const btn = document.createElement('div');
+      btn.className = 'location-btn';
+      
+      // Проверяем доступность локации
+      const isAvailable = player.level >= loc.level;
+      const isLocked = !isAvailable;
+      
+      if (isLocked) {
+        btn.style.opacity = '0.6';
+        btn.style.cursor = 'not-allowed';
+        btn.style.filter = 'grayscale(0.5)';
+      }
+      
+      // Определяем иконку локации
+      let icon = '📍';
+      if (loc.name.includes('Завод')) icon = '🏭';
+      if (loc.name.includes('Лес')) icon = '🌲';
+      if (loc.name.includes('Подземелье')) icon = '🏰';
+      
+      btn.innerHTML = `
+        <div class="location-icon">${icon}</div>
+        <div class="location-details">
+          <strong>${loc.name}</strong>
+          <div class="location-stats">
+            <span>📊 Ур. ${loc.level}</span>
+            <span>👾 Врагов: ${loc.enemies}</span>
+            <span>❤️ HP: ${loc.enemyHp}</span>
+            <span>⚔️ ATK: ${loc.enemyAtk}</span>
+          </div>
+          ${isLocked ? '<div class="location-lock">🔒 Требуется уровень ' + loc.level + '</div>' : ''}
+        </div>
+      `;
+      
+      if (isAvailable) {
+        btn.onclick = () => {
+          console.log(`🎮 Выбрана локация: ${loc.name}`);
+          // Переключаемся на игровой интерфейс
+          const locationSelection = document.getElementById('location-selection');
+          const battleGame = document.getElementById('battle-game');
+          
+          if (locationSelection) locationSelection.style.display = 'none';
+          if (battleGame) battleGame.style.display = 'block';
+          
+          // Запускаем битву
+          startBattle(locId);
+        };
+      }
+      
+      locationList.appendChild(btn);
+    }
+  }
 
   updateShop() {
     const shopGold = document.getElementById('shop-gold');
