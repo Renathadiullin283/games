@@ -3,11 +3,14 @@ import { initPlayer, player, playerReady } from './game.js';
 import { savePlayer, loadPlayer, debugSaveSystem } from './telegramSave.js';
 import { startBattle } from './battle.js';
 import { LOCATIONS } from './data.js';
+import { InventorySystem, ITEMS_DB, generateRandomItem } from './inventory.js';
+
 
 class SceneManager {
   constructor() {
     this.currentScene = 'menu';
     this.scenes = {};
+    this.inventorySystem = null;
     this.init();
   }
 
@@ -27,12 +30,29 @@ class SceneManager {
     // Ждём загрузку игрока
     await playerReady;
     console.log('✅ Игрок загружен:', player);
-    
+
+    this.inventorySystem = new InventorySystem(player);
     this.initEventListeners();
     this.updateAllDisplays();
     this.showScene('menu');
     
+    // Для отладки: добавляем несколько тестовых предметов
+    if (this.inventorySystem.items.length === 0) {
+      this.addTestItems();
+    }
     console.log('🎮 Игра готова!');
+  }
+
+    addTestItems() {
+    console.log('📦 Добавляем тестовые предметы...');
+    
+    this.inventorySystem.addItem(ITEMS_DB.sword_beginner);
+    this.inventorySystem.addItem(ITEMS_DB.leather_armor);
+    this.inventorySystem.addItem(ITEMS_DB.health_potion_small);
+    this.inventorySystem.addItem(ITEMS_DB.iron_ore);
+    this.inventorySystem.addItem(generateRandomItem(1, 3));
+    
+    console.log('✅ Тестовые предметы добавлены');
   }
 
   showScene(sceneName) {
@@ -219,9 +239,11 @@ class SceneManager {
     }
   }
 
+  // Обновлённый метод updateInventory:
   updateInventory() {
-    if (!player) return;
+    if (!player || !this.inventorySystem) return;
     
+    // Обновляем характеристики
     const statHp = document.getElementById('stat-hp');
     const statAtk = document.getElementById('stat-atk');
     const statDef = document.getElementById('stat-def');
@@ -234,7 +256,248 @@ class SceneManager {
       const critPercent = (player.stats.crit || 0) * 100;
       statCrit.textContent = `${critPercent.toFixed(1)}%`;
     }
+    
+    // Обновляем список предметов
+    this.renderInventoryItems();
+    
+    // Обновляем экипировку
+    this.renderEquipment();
   }
+
+  // Рендер предметов в инвентаре
+  renderInventoryItems() {
+    const itemsList = document.getElementById('inventory-list');
+    if (!itemsList || !this.inventorySystem) return;
+    
+    itemsList.innerHTML = '';
+    
+    if (this.inventorySystem.items.length === 0) {
+      itemsList.innerHTML = '<div class="empty-inventory">Инвентарь пуст</div>';
+      return;
+    }
+    
+    // Сортируем предметы: сначала экипированные, потом по редкости
+    const sortedItems = [...this.inventorySystem.items].sort((a, b) => {
+      if (a.equipped && !b.equipped) return -1;
+      if (!a.equipped && b.equipped) return 1;
+      
+      const rarityOrder = { legendary: 0, epic: 1, rare: 2, uncommon: 3, common: 4 };
+      return rarityOrder[a.rarity] - rarityOrder[b.rarity];
+    });
+    
+    sortedItems.forEach(item => {
+      const itemEl = this.createInventoryItemElement(item);
+      itemsList.appendChild(itemEl);
+    });
+    
+    // Обновляем счетчик предметов
+    const itemCount = document.getElementById('item-count');
+    if (itemCount) {
+      itemCount.textContent = `${this.inventorySystem.items.length}/${this.inventorySystem.maxSlots}`;
+    }
+  }
+
+  // Создание элемента предмета
+  createInventoryItemElement(item) {
+    const rarity = ITEM_RARITY[item.rarity] || ITEM_RARITY.common;
+    
+    const itemEl = document.createElement('div');
+    itemEl.className = `inventory-item ${item.equipped ? 'equipped' : ''}`;
+    itemEl.dataset.itemId = item.id;
+    itemEl.style.borderLeft = `4px solid ${rarity.color}`;
+    
+    itemEl.innerHTML = `
+      <div class="item-icon">${item.icon}</div>
+      <div class="item-info">
+        <div class="item-name" style="color: ${rarity.color}">
+          ${item.name} ${item.equipped ? '✅' : ''}
+        </div>
+        <div class="item-description">${item.description}</div>
+        <div class="item-stats">
+          ${item.stats ? this.formatItemStats(item.stats) : ''}
+          ${item.effect ? `<div class="item-effect">Эффект: ${this.formatItemEffect(item.effect)}</div>` : ''}
+        </div>
+        <div class="item-value">💰 ${item.value}</div>
+        ${item.stackable && item.quantity > 1 ? `<div class="item-quantity">x${item.quantity}</div>` : ''}
+      </div>
+      <div class="item-actions">
+        ${!item.equipped ? `<button class="btn-equip" data-action="equip">Экипировать</button>` : ''}
+        ${item.equipped ? `<button class="btn-unequip" data-action="unequip">Снять</button>` : ''}
+        ${item.type === 'potion' ? `<button class="btn-use" data-action="use">Использовать</button>` : ''}
+        <button class="btn-sell" data-action="sell">Продать</button>
+      </div>
+    `;
+    
+    // Добавляем обработчики событий
+    const buttons = itemEl.querySelectorAll('button');
+    buttons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const action = btn.dataset.action;
+        this.handleItemAction(item.id, action);
+      });
+    });
+    
+    return itemEl;
+  }
+
+  // Форматирование статов предмета
+  formatItemStats(stats) {
+    let html = '';
+    if (stats.hp) html += `<span>❤️ +${stats.hp} HP</span>`;
+    if (stats.atk) html += `<span>⚔️ +${stats.atk} ATK</span>`;
+    if (stats.def) html += `<span>🛡️ +${stats.def} DEF</span>`;
+    if (stats.crit) html += `<span>🎯 +${(stats.crit * 100).toFixed(1)}% крит</span>`;
+    return html;
+  }
+
+  // Форматирование эффекта предмета
+  formatItemEffect(effect) {
+    switch (effect.type) {
+      case 'heal': return `Восстанавливает ${effect.value} HP`;
+      case 'buff': return `+${effect.value} к ${effect.stat}`;
+      default: return effect.type;
+    }
+  }
+
+  // Обработка действий с предметами
+  handleItemAction(itemId, action) {
+    if (!this.inventorySystem) return;
+    
+    switch (action) {
+      case 'equip':
+        if (this.inventorySystem.equipItem(itemId)) {
+          this.showMessage('✅ Предмет экипирован');
+          this.updateInventory();
+          this.updateAllDisplays(); // Обновляем все сцены
+        }
+        break;
+        
+      case 'unequip':
+        if (this.inventorySystem.unequipItem(itemId)) {
+          this.showMessage('📦 Предмет снят');
+          this.updateInventory();
+          this.updateAllDisplays();
+        }
+        break;
+        
+      case 'use':
+        if (this.inventorySystem.useItem(itemId)) {
+          this.showMessage('✨ Предмет использован');
+          this.updateInventory();
+          this.updateAllDisplays();
+        }
+        break;
+        
+      case 'sell':
+        const item = this.inventorySystem.getItem(itemId);
+        if (item && confirm(`Продать "${item.name}" за ${Math.floor(item.value * 0.5)} золота?`)) {
+          if (this.inventorySystem.sellItem(itemId)) {
+            this.showMessage(`💰 Продано за ${Math.floor(item.value * 0.5)} золота`);
+            this.updateInventory();
+            this.updateAllDisplays();
+          }
+        }
+        break;
+    }
+  }
+
+  // Рендер экипировки
+  renderEquipment() {
+    if (!this.inventorySystem) return;
+    
+    const slots = {
+      weapon: document.querySelector('.slot[data-slot="weapon"]'),
+      armor: document.querySelector('.slot[data-slot="armor"]'),
+      helmet: document.querySelector('.slot[data-slot="helmet"]'),
+      boots: document.querySelector('.slot[data-slot="boots"]'),
+      ring: document.querySelector('.slot[data-slot="ring"]'),
+      amulet: document.querySelector('.slot[data-slot="amulet"]')
+    };
+    
+    Object.entries(slots).forEach(([slotType, slotElement]) => {
+      if (slotElement) {
+        const equippedItem = this.inventorySystem.equipment[slotType];
+        
+        if (equippedItem) {
+          const rarity = ITEM_RARITY[equippedItem.rarity] || ITEM_RARITY.common;
+          slotElement.innerHTML = `
+            <div class="equipped-item" style="border-color: ${rarity.color}">
+              <div class="equipped-icon">${equippedItem.icon}</div>
+              <div class="equipped-name">${equippedItem.name}</div>
+              <button class="btn-unequip-slot" data-slot="${slotType}">Снять</button>
+            </div>
+          `;
+          
+          // Обработчик кнопки снятия
+          const unequipBtn = slotElement.querySelector('.btn-unequip-slot');
+          if (unequipBtn) {
+            unequipBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              this.handleItemAction(equippedItem.id, 'unequip');
+            });
+          }
+        } else {
+          slotElement.innerHTML = `
+            <div class="slot-empty">
+              ${this.getSlotIcon(slotType)} ${this.getSlotName(slotType)}
+            </div>
+          `;
+        }
+      }
+    });
+  }
+
+  // Вспомогательные функции для слотов
+  getSlotIcon(slotType) {
+    const icons = {
+      weapon: '🗡️',
+      armor: '🛡️',
+      helmet: '⛑️',
+      boots: '👢',
+      ring: '💍',
+      amulet: '📿'
+    };
+    return icons[slotType] || '📦';
+  }
+
+  getSlotName(slotType) {
+    const names = {
+      weapon: 'Оружие',
+      armor: 'Броня',
+      helmet: 'Шлем',
+      boots: 'Ботинки',
+      ring: 'Кольцо',
+      amulet: 'Амулет'
+    };
+    return names[slotType] || 'Слот';
+  }
+
+  // Сообщение для пользователя
+  showMessage(text) {
+    const messageEl = document.createElement('div');
+    messageEl.className = 'game-message';
+    messageEl.textContent = text;
+    messageEl.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 15px 25px;
+      border-radius: 10px;
+      z-index: 1000;
+      animation: fadeInOut 2s ease-in-out;
+    `;
+    
+    document.body.appendChild(messageEl);
+    
+    setTimeout(() => {
+      messageEl.remove();
+    }, 2000);
+  }
+
 
   updateShop() {
     const shopGold = document.getElementById('shop-gold');
