@@ -170,42 +170,52 @@
   </div>
 </div>
   <!-- Сцена 4: Магазин -->
-  <div id="scene-shop" class="scene">
-    <header class="scene-header">
-      <button class="btn-back" data-scene="menu">← Назад</button>
-      <span>🛒 Магазин</span>
-    </header>
+<div id="scene-shop" class="scene">
+  <header class="scene-header">
+    <button class="btn-back" data-scene="menu">← Назад</button>
+    <span>🛒 Магазин</span>
+  </header>
+  
+  <div class="shop-content">
+    <div class="shop-balance">
+      <div class="balance-item">
+        <div class="balance-label">Золото:</div>
+        <div class="balance-value" id="shop-gold">0</div>
+      </div>
+      <div class="balance-item">
+        <div class="balance-label">Кристаллы:</div>
+        <div class="balance-value" id="shop-gems">0</div>
+      </div>
+    </div>
     
-    <div class="shop-content">
-      <div class="shop-balance">
-        <div class="balance-item">Золото: <span id="shop-gold">0</span></div>
-        <div class="balance-item">Кристаллы: <span id="shop-gems">0</span></div>
+    <div class="shop-refresh-info">
+      <div id="shop-refresh-info">До обновления: 0ч 0м 0с</div>
+      <button id="btn-shop-refresh" class="disabled">🔄 Обновить (50 золота)</button>
+    </div>
+    
+    <div class="shop-tabs">
+      <!-- Вкладки будут добавлены через JS -->
+    </div>
+    
+    <div class="shop-items">
+      <div id="shop-weapons" class="shop-category active">
+        <!-- Товары будут добавляться через JS -->
       </div>
-      
-      <div class="shop-tabs">
-        <button class="shop-tab active" data-tab="weapons">Оружие</button>
-        <button class="shop-tab" data-tab="armor">Броня</button>
-        <button class="shop-tab" data-tab="potions">Зелья</button>
-        <button class="shop-tab" data-tab="special">Особое</button>
+      <div id="shop-armor" class="shop-category">
+        <!-- Товары будут добавляться через JS -->
       </div>
-      
-      <div class="shop-items">
-        <div id="shop-weapons" class="shop-category active">
-          <!-- Товары будут добавляться через JS -->
-        </div>
-        <div id="shop-armor" class="shop-category">
-          <!-- Товары будут добавляться через JS -->
-        </div>
-        <div id="shop-potions" class="shop-category">
-          <!-- Товары будут добавляться через JS -->
-        </div>
-        <div id="shop-special" class="shop-category">
-          <!-- Товары будут добавляться через JS -->
-        </div>
+      <div id="shop-potions" class="shop-category">
+        <!-- Товары будут добавляться через JS -->
+      </div>
+      <div id="shop-special" class="shop-category">
+        <!-- Товары будут добавляться через JS -->
+      </div>
+      <div id="shop-materials" class="shop-category">
+        <!-- Товары будут добавляться через JS -->
       </div>
     </div>
   </div>
-  
+</div>
   <!-- Сцена 5: Навыки -->
   <div id="scene-skills" class="scene">
     <header class="scene-header">
