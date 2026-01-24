@@ -1,4 +1,4 @@
-// render.js (дополнение)
+// render.js
 let shakeTime = 0;
 let damageTexts = [];
 
@@ -147,8 +147,112 @@ export function updateDamageTexts(ctx) {
   });
 }
 
-// Новая функция для рисования элементов локации
-export function drawLocationElement(ctx, type, x, y) {
+// Новая функция для рисования фона
+export function drawBackground(ctx, locationType, offset = 0) {
+  if (!ctx) return;
+  
+  const canvas = ctx.canvas;
+  
+  // Очищаем canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  // Фон в зависимости от типа локации
+  switch(locationType) {
+    case 'factory':
+      // Заводской фон
+      ctx.fillStyle = '#2c3e50';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Грунт
+      ctx.fillStyle = '#7f8c8d';
+      ctx.fillRect(0, 150, canvas.width, 50);
+      
+      // Трубы и здания (движущиеся с offset)
+      ctx.fillStyle = '#34495e';
+      for (let i = 0; i < 3; i++) {
+        const x = (i * 150 + offset) % (canvas.width + 150);
+        ctx.fillRect(x - 100, 100, 50, 80); // Труба
+        ctx.fillRect(x - 50, 120, 70, 60);  // Здание
+      }
+      break;
+      
+    case 'forest':
+      // Лесной фон
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, '#1a5276');
+      gradient.addColorStop(1, '#145a32');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Земля
+      ctx.fillStyle = '#784212';
+      ctx.fillRect(0, 150, canvas.width, 50);
+      
+      // Деревья (движущиеся с offset)
+      ctx.fillStyle = '#2e4053';
+      for (let i = 0; i < 4; i++) {
+        const x = (i * 100 + offset) % (canvas.width + 100);
+        // Ствол
+        ctx.fillRect(x - 5, 120, 10, 30);
+        // Крона
+        ctx.fillStyle = '#27ae60';
+        ctx.beginPath();
+        ctx.arc(x, 110, 20, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#2e4053';
+      }
+      break;
+      
+    case 'dungeon':
+      // Подземелье
+      ctx.fillStyle = '#17202a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Пол
+      ctx.fillStyle = '#424949';
+      ctx.fillRect(0, 150, canvas.width, 50);
+      
+      // Стены (движущиеся с offset)
+      ctx.fillStyle = '#2c3e50';
+      for (let i = 0; i < 5; i++) {
+        const x = (i * 80 + offset) % (canvas.width + 80);
+        ctx.fillRect(x - 20, 80, 40, 70); // Колонна
+        // Факелы
+        ctx.fillStyle = '#f39c12';
+        ctx.beginPath();
+        ctx.arc(x, 70, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#2c3e50';
+      }
+      break;
+      
+    default:
+      // Стандартный фон
+      ctx.fillStyle = '#1a1a2e';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Земля
+      ctx.fillStyle = '#2d3436';
+      ctx.fillRect(0, 150, canvas.width, 50);
+      
+      // Звезды
+      ctx.fillStyle = '#fff';
+      for (let i = 0; i < 20; i++) {
+        const x = (i * 37 + offset) % canvas.width;
+        const y = (i * 19) % 100 + 20;
+        ctx.beginPath();
+        ctx.arc(x, y, 1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+  }
+  
+  // Дорожка (общая для всех локаций)
+  ctx.fillStyle = '#636e72';
+  ctx.fillRect(0, 155, canvas.width, 5);
+}
+
+// Функция для рисования элементов локации
+export function drawLocationElement(ctx, type, x, y, size = 1.0) {
   if (!ctx) return;
   
   ctx.save();
@@ -157,10 +261,10 @@ export function drawLocationElement(ctx, type, x, y) {
     case 'tree':
       // Дерево
       ctx.fillStyle = '#8B4513';
-      ctx.fillRect(x - 5, y - 30, 10, 30);
+      ctx.fillRect(x - 5 * size, y - 30 * size, 10 * size, 30 * size);
       ctx.fillStyle = '#2ecc71';
       ctx.beginPath();
-      ctx.arc(x, y - 40, 20, 0, Math.PI * 2);
+      ctx.arc(x, y - 40 * size, 20 * size, 0, Math.PI * 2);
       ctx.fill();
       break;
       
@@ -168,7 +272,7 @@ export function drawLocationElement(ctx, type, x, y) {
       // Камень
       ctx.fillStyle = '#7f8c8d';
       ctx.beginPath();
-      ctx.arc(x, y, 15, 0, Math.PI * 2);
+      ctx.arc(x, y, 15 * size, 0, Math.PI * 2);
       ctx.fill();
       break;
       
@@ -176,9 +280,19 @@ export function drawLocationElement(ctx, type, x, y) {
       // Куст
       ctx.fillStyle = '#27ae60';
       ctx.beginPath();
-      ctx.arc(x, y, 12, 0, Math.PI * 2);
-      ctx.arc(x + 10, y, 10, 0, Math.PI * 2);
-      ctx.arc(x - 10, y, 10, 0, Math.PI * 2);
+      ctx.arc(x, y, 12 * size, 0, Math.PI * 2);
+      ctx.arc(x + 10 * size, y, 10 * size, 0, Math.PI * 2);
+      ctx.arc(x - 10 * size, y, 10 * size, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+      
+    case 'cloud':
+      // Облако
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.beginPath();
+      ctx.arc(x, y, 10 * size, 0, Math.PI * 2);
+      ctx.arc(x + 12 * size, y - 5 * size, 8 * size, 0, Math.PI * 2);
+      ctx.arc(x + 20 * size, y, 10 * size, 0, Math.PI * 2);
       ctx.fill();
       break;
   }
