@@ -3,7 +3,12 @@ import { initPlayer, player, playerReady } from './game.js';
 import { savePlayer, loadPlayer, debugSaveSystem } from './telegramSave.js';
 import { startBattle } from './battle.js';
 import { LOCATIONS } from './data.js';
-import { InventorySystem, ITEMS_DB, generateRandomItem } from './inventory.js';
+import { 
+          InventorySystem, 
+          ITEMS_DB, 
+          generateRandomItem,
+          ITEM_RARITY  // Добавьте эту строку
+        } from './inventory.js';
 
 
 class SceneManager {
