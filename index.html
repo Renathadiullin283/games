@@ -24,34 +24,52 @@
     <button id="btn-shop">Магазин</button>
   </div>
 
+  <div id="location-selection" style="display:none; width: 100%; margin-top: 10px;">
+    <!-- Кнопки локаций появятся сюда через JS -->
+  </div>
+
   <pre id="log"></pre>
 </div>
 
-<!-- Скрипт интерфейса -->
 <script type="module">
 import { startRun } from "./battle.js";
 import { player } from "./game.js";
+import { LOCATIONS } from "./data.js";
 
 const hudHP = document.getElementById("hp");
 const hudGold = document.getElementById("gold");
 const hudLevel = document.getElementById("level");
 const logEl = document.getElementById("log");
+const locationDiv = document.getElementById("location-selection");
 
-// Обновление HUD
-export function updateHUD() {
+// HUD
+function updateHUD() {
   hudHP.textContent = `HP: ${player.currentHp}`;
   hudGold.textContent = `Gold: ${player.gold}`;
   hudLevel.textContent = `Lvl: ${player.level}`;
 }
+setInterval(updateHUD, 500);
 
-// Локации
-const locations = ["factory"]; // пока одна, можно расширять
+// Кнопка Локации
 document.getElementById("btn-locations").onclick = () => {
-  const loc = prompt("Выберите локацию: " + locations.join(", "), locations[0]);
-  if (locations.includes(loc)) {
-    logEl.textContent = `Вы выбрали: ${loc}\n`;
-    startRun(loc);
-  }
+  locationDiv.innerHTML = ""; // очистка
+  locationDiv.style.display = "flex";
+  locationDiv.style.flexDirection = "column";
+  locationDiv.style.alignItems = "center";
+
+  Object.keys(LOCATIONS).forEach(locId => {
+    const loc = LOCATIONS[locId];
+    const btn = document.createElement("button");
+    btn.textContent = `${loc.name} (Ур: ${loc.level})`;
+    btn.style.width = "80%";
+    btn.style.margin = "5px 0";
+    btn.onclick = () => {
+      locationDiv.style.display = "none";
+      logEl.textContent = `Вы выбрали: ${loc.name}\n`;
+      startRun(locId);
+    };
+    locationDiv.appendChild(btn);
+  });
 };
 
 // Инвентарь
@@ -63,9 +81,6 @@ document.getElementById("btn-inventory").onclick = () => {
 document.getElementById("btn-shop").onclick = () => {
   alert("Магазин пока пустой (заготовка)");
 };
-
-// Авто-обновление HUD каждые 500мс
-setInterval(updateHUD, 500);
 </script>
 
 </body>
