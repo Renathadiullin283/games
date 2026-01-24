@@ -1,39 +1,53 @@
-// battle.js
-import { player } from "./game.js";
+import { player, resetPlayerHp } from "./game.js";
 import { LOCATIONS } from "./data.js";
 
+const logEl = document.getElementById("log");
+
+function log(text) {
+  logEl.textContent += text + "\n";
+}
+
 export function startRun(locationId) {
-  const loc = LOCATIONS[locationId];
+  logEl.textContent = "";
+
+  const location = LOCATIONS[locationId];
+  resetPlayerHp();
+
+  log(`Локация: ${location.name}`);
+  log(`HP игрока: ${player.currentHp}`);
+  log("----------------------");
+
   let enemyIndex = 0;
 
-  player.currentHp = player.maxHp;
-
   const interval = setInterval(() => {
-    if (player.currentHp <= 0 || enemyIndex >= loc.enemies) {
+    if (player.currentHp <= 0) {
+      log("❌ Персонаж погиб");
       clearInterval(interval);
-      console.log("Забег окончен");
       return;
     }
 
-    const enemyHp = loc.baseEnemyHp + enemyIndex * 10;
-    const enemyAtk = loc.baseEnemyAtk + enemyIndex * 2;
+    if (enemyIndex >= location.enemies) {
+      log("✅ Локация зачищена");
+      clearInterval(interval);
+      return;
+    }
 
-    // игрок бьёт
+    const enemyHp = location.baseEnemyHp + enemyIndex * 20;
+    const enemyAtk = location.baseEnemyAtk + enemyIndex * 5;
+
     let damage = player.stats.atk;
     if (Math.random() < player.stats.crit) {
       damage *= 2;
+      log("🔥 КРИТ!");
     }
 
-    // монстр бьёт
     const incoming = Math.max(enemyAtk - player.stats.def, 1);
-
     player.currentHp -= incoming;
 
-    console.log(
-      `Враг ${enemyIndex + 1} | Урон игрока: ${damage} | Получено: ${incoming} | HP: ${player.currentHp}`
+    log(
+      `Враг ${enemyIndex + 1} | Урон: ${damage} | Получено: ${incoming} | HP: ${player.currentHp}`
     );
 
     enemyIndex++;
   }, 1000);
 }
-
