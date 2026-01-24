@@ -913,3 +913,114 @@ input[type="range"] {
     grid-column: span 1;
   }
 }
+updateBattle() {
+  if (!player) return;
+  
+  // Получаем все элементы HUD
+  const battleLevel = document.getElementById('battle-level');
+  const battleGold = document.getElementById('battle-gold');
+  const battleHp = document.getElementById('battle-hp');
+  const battleAtk = document.getElementById('battle-atk');
+  const battleDef = document.getElementById('battle-def');
+  const battleEnemies = document.getElementById('battle-enemies');
+  
+  // Безопасно обновляем каждый элемент
+  if (battleLevel) battleLevel.textContent = player.level;
+  if (battleGold) battleGold.textContent = player.gold;
+  if (battleHp) battleHp.textContent = `${player.currentHp}/${player.maxHp}`;
+  if (battleAtk) battleAtk.textContent = player.stats.atk;
+  if (battleDef) battleDef.textContent = player.stats.def;
+  
+  // Обновляем информацию о классе
+  const battleHUD = document.querySelector('.battle-hud');
+  if (battleHUD) {
+    // Удаляем старую информацию о классе
+    const existingClassInfo = battleHUD.querySelector('.player-class-info');
+    if (existingClassInfo) {
+      existingClassInfo.remove();
+    }
+    
+    // Добавляем новую информацию о классе
+    const classInfo = document.createElement('div');
+    classInfo.className = 'player-class-info';
+    classInfo.innerHTML = `Класс: ${player.classId === 'warrior' ? '⚔️ Воин' : '🗡️ Ассасин'}`;
+    classInfo.style.cssText = `
+      background: rgba(255, 255, 255, 0.05);
+      padding: 5px 10px;
+      border-radius: 5px;
+      margin-top: 5px;
+      font-size: 0.9em;
+      text-align: center;
+      color: ${player.classId === 'warrior' ? '#4cd137' : '#9b59b6'};
+    `;
+    battleHUD.appendChild(classInfo);
+  }
+  
+  // Обновляем список локаций
+  this.updateLocationList();
+}
+
+// Обновлённый updateLocationList
+updateLocationList() {
+  const locationList = document.getElementById('location-list');
+  if (!locationList) return;
+  
+  locationList.innerHTML = '';
+  
+  // Сортируем локации по уровню
+  const sortedLocations = Object.entries(LOCATIONS)
+    .sort(([, a], [, b]) => a.level - b.level);
+  
+  for (const [locId, loc] of sortedLocations) {
+    const btn = document.createElement('div');
+    btn.className = 'location-btn';
+    
+    // Проверяем доступность локации (уровень игрока >= уровня локации)
+    const isAvailable = player.level >= loc.level;
+    const isLocked = !isAvailable;
+    
+    if (isLocked) {
+      btn.style.opacity = '0.6';
+      btn.style.cursor = 'not-allowed';
+      btn.style.filter = 'grayscale(0.5)';
+    }
+    
+    btn.innerHTML = `
+      <strong>${loc.name}</strong><br>
+      <small>Уровень: ${loc.level}</small><br>
+      <small>Врагов: ${loc.enemies}</small>
+      ${isLocked ? '<br><small style="color:#e74c3c;">🔒 Недоступно</small>' : ''}
+    `;
+    
+    if (isAvailable) {
+      btn.onclick = () => {
+        console.log(`🎮 Выбрана локация: ${loc.name}`);
+        locationList.style.display = 'none';
+        const logEl = document.getElementById('battle-log');
+        if (logEl) logEl.textContent = `Вы выбрали: ${loc.name}\n`;
+        
+        // Запускаем битву с небольшой задержкой для анимации
+        setTimeout(() => {
+          if (window.battleSystem) {
+            window.battleSystem.startBattle(locId);
+          } else {
+            console.error('Battle system не инициализирован');
+          }
+        }, 300);
+      };
+    }
+    
+    locationList.appendChild(btn);
+  }
+  
+  console.log('📍 Список локаций обновлен');
+}
+
+// Также добавьте этот метод для полного обновления HUD
+updateAllDisplays() {
+  this.updateMenu();
+  this.updateBattle();
+  this.updateInventory();
+  this.updateShop();
+  console.log('🔄 Все дисплеи обновлены');
+}
