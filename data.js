@@ -1,4 +1,3 @@
-// data.js
 export const CLASSES = {
   warrior: {
     name: "Воин",
@@ -18,8 +17,7 @@ export const LOCATIONS = {
   factory: {
     name: "Заброшенный завод",
     enemies: 20,
-    baseEnemyHp: 120,
-    baseEnemyAtk: 12,
+    baseEnemyHp: 200,
+    baseEnemyAtk: 20,
   },
 };
-
