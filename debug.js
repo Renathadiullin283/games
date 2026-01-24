@@ -1,4 +1,3 @@
-// debug.js
 export const DEBUG_PLAYER = {
   level: 50,
   gold: 100000,
@@ -7,7 +6,6 @@ export const DEBUG_PLAYER = {
     hp: 5000,
     atk: 300,
     def: 120,
-    crit: 0.15,
+    crit: 0.2,
   },
 };
-
