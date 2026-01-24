@@ -654,3 +654,105 @@ input[type="range"] {
     grid-template-columns: 1fr;
   }
 }
+/* Добавьте в style.css */
+
+/* Контейнер умений в битве */
+.skills-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 15px 0;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 15px;
+}
+
+.skill-item {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+  font-size: 0.9em;
+}
+
+.skill-name {
+  font-weight: bold;
+  color: #3498db;
+  margin-bottom: 5px;
+  font-size: 0.8em;
+}
+
+.skill-cooldown {
+  color: #f1c40f;
+  font-size: 1.2em;
+  font-weight: bold;
+  margin: 5px 0;
+}
+
+.skill-bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 5px;
+}
+
+.skill-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3498db, #2ecc71);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* Кнопка паузы */
+#btn-pause {
+  grid-column: span 2;
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%) !important;
+}
+
+#btn-flee {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
+}
+
+/* Эффекты в логе боя */
+.log-content {
+  font-family: 'Courier New', monospace;
+  font-size: 0.85em;
+  line-height: 1.4;
+  color: #a5b1c2;
+}
+
+.log-content div {
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.log-content small {
+  color: #7f8c8d;
+  font-size: 0.8em;
+}
+
+/* Авто-бой сообщение */
+.auto-battle-info {
+  background: rgba(52, 152, 219, 0.2);
+  border-left: 4px solid #3498db;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+/* Для мобильных */
+@media (max-width: 500px) {
+  .skills-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .battle-controls {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  #btn-pause {
+    grid-column: span 1;
+  }
+}
