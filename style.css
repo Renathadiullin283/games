@@ -1024,3 +1024,65 @@ updateAllDisplays() {
   this.updateShop();
   console.log('🔄 Все дисплеи обновлены');
 }
+/* Стили для путешествия */
+.travel-info {
+  background: rgba(52, 152, 219, 0.1);
+  border-left: 3px solid #3498db;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+  font-size: 0.9em;
+  color: #bdc3c7;
+}
+
+.travel-info p {
+  margin: 5px 0;
+}
+
+/* Анимация шагания */
+@keyframes step {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.walking {
+  animation: step 0.5s ease-in-out infinite;
+}
+
+/* Стили для прогресс бара в canvas */
+.progress-bar {
+  position: absolute;
+  top: 10px;
+  left: 20px;
+  right: 20px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3498db, #2ecc71);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* Адаптивные стили */
+@media (max-width: 500px) {
+  .battle-hud .hud-row {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .hud-item {
+    width: 100%;
+    text-align: left;
+    padding: 5px;
+  }
+  
+  .travel-info {
+    font-size: 0.8em;
+    padding: 8px;
+  }
+}
