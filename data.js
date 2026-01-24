@@ -16,8 +16,11 @@ export const CLASSES = {
 export const LOCATIONS = {
   factory: {
     name: "Заброшенный завод",
-    enemies: 20,
-    baseEnemyHp: 200,
-    baseEnemyAtk: 20,
+    enemies: 10,
+    enemyHp: 300,
+    enemyAtk: 25,
+    hpGrowth: 1.25,
+    atkGrowth: 1.15,
   },
 };
+
