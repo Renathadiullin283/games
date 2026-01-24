@@ -11,6 +11,7 @@ let attackPhase = 0;
 let animationId = null;
 let gameInterval = null;
 
+// Обновление HUD
 function updateHUD() {
   document.getElementById("hp").textContent = `HP: ${player.currentHp}`;
   document.getElementById("gold").textContent = `Gold: ${player.gold}`;
@@ -18,13 +19,14 @@ function updateHUD() {
 }
 
 export function startRun(locationId) {
+  console.log("⚔️ Начинаем битву в локации:", locationId);
+  
   // Останавливаем предыдущую игру
   stopGame();
   
   logEl.textContent = "";
   const location = LOCATIONS[locationId];
   resetPlayerHp();
-  
   updateHUD();
 
   let enemyIndex = 0;
@@ -34,6 +36,7 @@ export function startRun(locationId) {
   gameInterval = setInterval(() => {
     if (player.currentHp <= 0) {
       log("❌ Персонаж погиб");
+      log("💀 Вы проиграли!");
       stopGame();
       savePlayer(player);
       return;
@@ -41,40 +44,51 @@ export function startRun(locationId) {
 
     if (enemyIndex >= location.enemies) {
       log("✅ Локация зачищена");
-      log(`🏆 Получено: 50 золота и 1 уровень опыта`);
-      player.gold += 50;
+      const goldReward = 50 + location.level * 20;
+      log(`🏆 Получено: ${goldReward} золота и 1 уровень опыта`);
+      player.gold += goldReward;
       player.level += 1;
       stopGame();
       savePlayer(player);
+      updateHUD();
       return;
     }
 
     // Атака игрока
     const crit = Math.random() < player.stats.crit;
-    const damage = crit ? player.stats.atk * 2 : player.stats.atk;
+    const damage = crit ? Math.floor(player.stats.atk * 2.5) : player.stats.atk;
     enemy.hp -= damage;
     spawnDamageText(280, 90, `-${damage}`, crit);
-    if (crit) screenShake(8);
+    if (crit) {
+      screenShake(8);
+      log("💥 Критический удар!");
+    }
+
     attackPhase = 10;
 
     if (enemy.hp <= 0) {
+      const goldReward = 10 + Math.floor(enemyIndex / 2);
       log(`💀 Враг ${enemyIndex + 1} побежден!`);
-      player.gold += 10; // Награда за врага
+      log(`💰 Получено ${goldReward} золота`);
+      player.gold += goldReward;
       enemyIndex++;
       
       if (enemyIndex >= location.enemies) {
+        const finalReward = 50 + location.level * 20;
         log("🏆 Все враги побеждены!");
-        log(`🏆 Получено: 50 золота и 1 уровень опыта`);
-        player.gold += 50;
+        log(`🏆 Получено: ${finalReward} золота и 1 уровень опыта`);
+        player.gold += finalReward;
         player.level += 1;
         stopGame();
         savePlayer(player);
+        updateHUD();
         return;
       }
       
       log(`⚔️ Встречен враг ${enemyIndex + 1}/${location.enemies}`);
       spawnEnemy(enemyIndex, location);
-      savePlayer(player); // Сохраняем после каждого убитого врага
+      savePlayer(player); // Сохраняем после каждого врага
+      updateHUD();
       return;
     }
 
@@ -82,8 +96,13 @@ export function startRun(locationId) {
     const incoming = Math.max(enemy.atk - player.stats.def, 1);
     player.currentHp -= incoming;
     spawnDamageText(120, 90, `-${incoming}`);
-    updateHUD();
     
+    // Предупреждение о низком HP
+    if (player.currentHp < player.maxHp * 0.3 && player.currentHp > 0) {
+      log("⚠️ Низкое здоровье!");
+    }
+    
+    updateHUD();
   }, 1000);
 
   animate();
@@ -95,6 +114,7 @@ function spawnEnemy(index, location) {
     hp: enemyMaxHp,
     atk: Math.floor(location.enemyAtk * Math.pow(location.atkGrowth, index)),
   };
+  console.log(`👾 Враг ${index + 1}: HP=${enemy.hp}, ATK=${enemy.atk}`);
 }
 
 function animate() {
@@ -124,6 +144,7 @@ function stopGame() {
   if (gameInterval) {
     clearInterval(gameInterval);
     gameInterval = null;
+    console.log("⏹️ Игра остановлена");
   }
   if (animationId) {
     cancelAnimationFrame(animationId);
@@ -134,4 +155,5 @@ function stopGame() {
 function log(text) {
   logEl.textContent += text + "\n";
   logEl.scrollTop = logEl.scrollHeight;
+  console.log(text);
 }
