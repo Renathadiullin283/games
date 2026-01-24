@@ -19,7 +19,7 @@
   <canvas id="game" width="400" height="200"></canvas>
 
   <div id="controls">
-    <button id="btn-battle">Битва</button>
+    <button id="btn-locations">Локации</button>
     <button id="btn-inventory">Инвентарь</button>
     <button id="btn-shop">Магазин</button>
   </div>
@@ -27,20 +27,45 @@
   <pre id="log"></pre>
 </div>
 
+<!-- Скрипт интерфейса -->
 <script type="module">
-  import { startRun } from "./battle.js";
+import { startRun } from "./battle.js";
+import { player } from "./game.js";
 
-  document.getElementById("btn-battle").onclick = () => {
-    startRun("factory");
-  };
+const hudHP = document.getElementById("hp");
+const hudGold = document.getElementById("gold");
+const hudLevel = document.getElementById("level");
+const logEl = document.getElementById("log");
 
-  document.getElementById("btn-inventory").onclick = () => {
-    alert("Инвентарь пока пустой (заготовка)");
-  };
+// Обновление HUD
+export function updateHUD() {
+  hudHP.textContent = `HP: ${player.currentHp}`;
+  hudGold.textContent = `Gold: ${player.gold}`;
+  hudLevel.textContent = `Lvl: ${player.level}`;
+}
 
-  document.getElementById("btn-shop").onclick = () => {
-    alert("Магазин пока пустой (заготовка)");
-  };
+// Локации
+const locations = ["factory"]; // пока одна, можно расширять
+document.getElementById("btn-locations").onclick = () => {
+  const loc = prompt("Выберите локацию: " + locations.join(", "), locations[0]);
+  if (locations.includes(loc)) {
+    logEl.textContent = `Вы выбрали: ${loc}\n`;
+    startRun(loc);
+  }
+};
+
+// Инвентарь
+document.getElementById("btn-inventory").onclick = () => {
+  alert("Инвентарь пока пустой (заготовка)");
+};
+
+// Магазин
+document.getElementById("btn-shop").onclick = () => {
+  alert("Магазин пока пустой (заготовка)");
+};
+
+// Авто-обновление HUD каждые 500мс
+setInterval(updateHUD, 500);
 </script>
 
 </body>
