@@ -96,6 +96,7 @@ function animate() {
 
   requestAnimationFrame(animate);
 }
+if (animationId) cancelAnimationFrame(animationId);
 
 function log(text) {
   logEl.textContent += text + "\n";
