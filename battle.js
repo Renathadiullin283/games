@@ -45,9 +45,10 @@ class BattleSystem {
       baseEnemyInterval: 8000, // 8 секунд между врагами
       minEnemyInterval: 5000,  // минимум 5 секунд
       maxEnemyInterval: 12000, // максимум 12 секунд
-      travelSpeed: 0.5,        // скорость прогресса путешествия (% в секунду)
+      travelSpeed: 1,        // скорость прогресса путешествия (% в секунду)
       maxLocationProgress: 100, // максимум прогресса локации
-      enemiesPerLocation: 8     // примерное количество врагов за локацию
+      enemiesPerLocation: 8,     // примерное количество врагов за локацию
+      backgroundSpeed: 12.0      // НОВОЕ: скорость прокрутки фона (было 0.5)         
     };
     
     // Настройки умений
@@ -344,15 +345,15 @@ returnToLocationSelection() {
       );
       
       // Анимация шага персонажа
-      this.travelAnimation.playerStep = (this.travelAnimation.playerStep + 1) % 20;
-      this.travelAnimation.backgroundOffset = (this.travelAnimation.backgroundOffset + 1) % 400;
+      this.travelAnimation.playerStep = (this.travelAnimation.playerStep + 2) % 20;
+      this.travelAnimation.backgroundOffset = (this.travelAnimation.backgroundOffset + 2) % 800;
       
       // Обновляем HUD каждые 2 секунды
       if (Math.floor(this.travelProgress) % 2 === 0) {
         this.updateBattleHUD();
       }
       
-    }, 1000); // Обновляем каждую секунду
+    }, 200); // Обновляем каждую секунду
   }
 
   scheduleNextEnemy() {
@@ -939,7 +940,7 @@ drawLocationBackground() {
   const ctx = this.ctx;
   const canvas = this.canvas;
   
-  // Определяем тип фона в зависимости от локации
+  // Определяем тип фона
   let backgroundType = 'default';
   if (this.currentLocation) {
     if (this.currentLocation.name.includes('Завод')) {
@@ -951,10 +952,10 @@ drawLocationBackground() {
     }
   }
   
-  // Рисуем фон с учетом смещения для анимации движения
+  // Рисуем фон с увеличенной скоростью смещения
   drawBackground(ctx, backgroundType, this.travelAnimation.backgroundOffset);
   
-  // Прогресс бар локации поверх фона
+  // Прогресс бар
   const progressWidth = (canvas.width - 40) * (this.locationProgress / 100);
   
   // Фон прогресс бара
@@ -963,15 +964,10 @@ drawLocationBackground() {
   ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
   ctx.fillRect(20, 10, canvas.width - 40, 12);
   
-  // Заполненная часть прогресс бара
+  // Заполненная часть
   if (this.locationProgress >= 100) {
-    // Полный прогресс - зеленый
-    const gradient = ctx.createLinearGradient(20, 10, 20 + progressWidth, 10);
-    gradient.addColorStop(0, '#00b894');
-    gradient.addColorStop(1, '#00cec9');
-    ctx.fillStyle = gradient;
+    ctx.fillStyle = '#00b894';
   } else {
-    // Обычный прогресс - синий
     const gradient = ctx.createLinearGradient(20, 10, 20 + progressWidth, 10);
     gradient.addColorStop(0, '#3498db');
     gradient.addColorStop(1, '#2980b9');
@@ -985,11 +981,6 @@ drawLocationBackground() {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(`${Math.round(this.locationProgress)}%`, canvas.width / 2, 16);
-  
-  // Рамка прогресс бара
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(20, 10, canvas.width - 40, 12);
 }
   drawTravelScene() {
     const ctx = this.ctx;
