@@ -624,46 +624,60 @@ class BattleSystem {
     this.animationId = requestAnimationFrame(() => this.animate());
   }
 
-  stopBattle() {
-    console.log('🛑 Останавливаем битву...');
-    
-    this.isBattleActive = false;
-    this.isPaused = false;
-    
-    // Очищаем все интервалы
-    if (this.gameInterval) {
-      clearInterval(this.gameInterval);
-      this.gameInterval = null;
-    }
-    
-    if (this.skillInterval) {
-      clearInterval(this.skillInterval);
-      this.skillInterval = null;
-    }
-    
-    // Останавливаем анимацию
-    if (this.animationId) {
-      cancelAnimationFrame(this.animationId);
-      this.animationId = null;
-    }
-    
-    // Очищаем таймаут возврата в меню
-    if (this.returnToMenuTimeout) {
-      clearTimeout(this.returnToMenuTimeout);
-      this.returnToMenuTimeout = null;
-    }
-    
-    // Сбрасываем состояние
-    this.enemy = null;
-    this.activeEffects = {
-      enemyStunned: 0,
-      enemyPoisoned: { turns: 0, damage: 0 },
-      playerDodging: false,
-      nextCrit: false
-    };
-    
-    console.log('✅ Битва остановлена');
+stopBattle() {
+  console.log('🛑 Останавливаем битву...');
+  
+  // Устанавливаем флаги
+  this.isBattleActive = false;
+  this.isPaused = false;
+  
+  // Очищаем все интервалы
+  if (this.gameInterval) {
+    clearInterval(this.gameInterval);
+    this.gameInterval = null;
+    console.log('⏹️ Очищен gameInterval');
   }
+  
+  if (this.skillInterval) {
+    clearInterval(this.skillInterval);
+    this.skillInterval = null;
+    console.log('⏹️ Очищен skillInterval');
+  }
+  
+  // Останавливаем анимацию
+  if (this.animationId) {
+    cancelAnimationFrame(this.animationId);
+    this.animationId = null;
+    console.log('⏹️ Остановлена анимация');
+  }
+  
+  // Очищаем таймаут возврата в меню
+  if (this.returnToMenuTimeout) {
+    clearTimeout(this.returnToMenuTimeout);
+    this.returnToMenuTimeout = null;
+    console.log('⏹️ Очищен returnToMenuTimeout');
+  }
+  
+  // Сбрасываем состояние
+  this.enemy = null;
+  this.currentLocation = null;
+  this.enemyIndex = 0;
+  
+  // Сбрасываем эффекты
+  this.activeEffects = {
+    enemyStunned: 0,
+    enemyPoisoned: { turns: 0, damage: 0 },
+    playerDodging: false,
+    nextCrit: false
+  };
+  
+  // Очищаем canvas
+  if (this.ctx) {
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+  
+  console.log('✅ Битва полностью остановлена');
+}
 
   log(message) {
     if (!this.logEl) return;
