@@ -1,9 +1,10 @@
-export const SAVE_KEYS = {
-  PLAYER: "player_data",
-  INVENTORY: "inventory_data",
-  PROGRESS: "progress_data",
-};
 
+
+export const SAVE_KEYS = {
+  PLAYER: "stickman_rpg_player",
+  INVENTORY: "stickman_rpg_inventory",
+  PROGRESS: "stickman_rpg_progress",
+};
 
 export const CLASSES = {
   warrior: {
