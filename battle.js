@@ -1,11 +1,15 @@
 import { player, resetPlayerHp } from "./game.js";
 import { LOCATIONS } from "./data.js";
+import { clear, drawStickman, drawHpBar } from "./render.js";
 
 const logEl = document.getElementById("log");
 
 function log(text) {
   logEl.textContent += text + "\n";
 }
+
+let enemy = null;
+let enemyMaxHp = 0;
 
 export function startRun(locationId) {
   logEl.textContent = "";
@@ -14,12 +18,9 @@ export function startRun(locationId) {
   resetPlayerHp();
 
   let enemyIndex = 0;
-  let enemy = spawnEnemy(enemyIndex, location);
+  spawnEnemy(enemyIndex, location);
 
   log(`Локация: ${location.name}`);
-  log(`HP игрока: ${player.currentHp}`);
-  log("----------------------");
-  log(`👹 Враг ${enemyIndex + 1} | HP: ${enemy.hp}`);
 
   const interval = setInterval(() => {
     if (player.currentHp <= 0) {
@@ -42,21 +43,15 @@ export function startRun(locationId) {
     }
 
     enemy.hp -= damage;
-    log(`Игрок наносит ${damage} урона | HP врага: ${Math.max(enemy.hp, 0)}`);
 
-    // === Проверка смерти врага ===
     if (enemy.hp <= 0) {
       enemyIndex++;
-
       if (enemyIndex >= location.enemies) {
         log("🏆 Все враги побеждены");
         clearInterval(interval);
         return;
       }
-
-      enemy = spawnEnemy(enemyIndex, location);
-      log("----------------------");
-      log(`👹 Враг ${enemyIndex + 1} | HP: ${enemy.hp}`);
+      spawnEnemy(enemyIndex, location);
       return;
     }
 
@@ -64,13 +59,29 @@ export function startRun(locationId) {
     const incoming = Math.max(enemy.atk - player.stats.def, 1);
     player.currentHp -= incoming;
 
-    log(`Враг бьёт на ${incoming} | HP игрока: ${player.currentHp}`);
+    render();
   }, 1000);
+
+  render();
 }
 
 function spawnEnemy(index, location) {
-  return {
-    hp: Math.floor(location.enemyHp * Math.pow(location.hpGrowth, index)),
+  enemyMaxHp = Math.floor(location.enemyHp * Math.pow(location.hpGrowth, index));
+  enemy = {
+    hp: enemyMaxHp,
     atk: Math.floor(location.enemyAtk * Math.pow(location.atkGrowth, index)),
   };
+  render();
+}
+
+function render() {
+  clear();
+
+  // player
+  drawStickman(100, 120, "#000");
+  drawHpBar(70, 20, 60, 6, player.currentHp, player.maxHp);
+
+  // enemy
+  drawStickman(300, 120, "#b00");
+  drawHpBar(270, 20, 60, 6, enemy.hp, enemyMaxHp);
 }
