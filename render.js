@@ -21,6 +21,52 @@ export function screenShake(ctx, duration = 10) {
   shakeTime = duration;
 }
 
+// render.js - добавить новые эффекты
+export function drawParticleEffect(ctx, x, y, type = 'heal') {
+  const particles = [];
+  const colors = {
+    heal: ['#00ff00', '#00cc00', '#ffffff'],
+    damage: ['#ff0000', '#ff3300', '#ff6600'],
+    magic: ['#9933ff', '#cc66ff', '#ff99ff']
+  };
+  
+  // Генерация частиц
+  for (let i = 0; i < 15; i++) {
+    particles.push({
+      x,
+      y,
+      size: Math.random() * 3 + 1,
+      speedX: (Math.random() - 0.5) * 4,
+      speedY: Math.random() * -3 - 1,
+      color: colors[type][Math.floor(Math.random() * colors[type].length)],
+      life: 100
+    });
+  }
+  
+  // Анимация частиц
+  const animate = () => {
+    ctx.save();
+    particles.forEach(p => {
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = p.life / 100;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+      
+      p.x += p.speedX;
+      p.y += p.speedY;
+      p.life--;
+    });
+    ctx.restore();
+    
+    if (particles.some(p => p.life > 0)) {
+      requestAnimationFrame(animate);
+    }
+  };
+  
+  animate();
+}
+
 export function drawHpBar(ctx, x, y, w, h, hp, maxHp) {
   if (!ctx) return;
   
