@@ -428,64 +428,45 @@ class BattleSystem {
     this.updateBattleHUD();
   }
 
-  victory() {
-    if (!this.isBattleActive) return;
-    
-    const goldReward = 50 + this.currentLocation.level * 20;
-    player.gold += goldReward;
-    player.level += 1;
-    
-    this.log('🏆 Все враги побеждены!');
-    this.log(`🎉 Получено: ${goldReward} золота и 1 уровень опыта`);
-    this.log(`🎮 Уровень повышен: ${player.level}`);
-    
-    // Останавливаем битву
-    this.stopBattle();
-    
-    // Сохраняем прогресс
-    savePlayer(player);
-    
-    // Обновляем HUD
+victory() {
+  if (!this.isBattleActive) {
+    console.log('⚠️ Победа вызвана, но битва не активна');
+    return;
+  }
+  
+  console.log('🏆 Начинаем обработку победы...');
+  
+  const goldReward = 50 + this.currentLocation.level * 20;
+  player.gold += goldReward;
+  player.level += 1;
+  
+  this.log('🏆 Все враги побеждены!');
+  this.log(`🎉 Получено: ${goldReward} золота и 1 уровень опыта`);
+  this.log(`🎮 Уровень повышен: ${player.level}`);
+  
+  // Сначала останавливаем битву
+  this.stopBattle();
+  
+  // Сохраняем прогресс
+  savePlayer(player).then(() => {
+    console.log('💾 Прогресс сохранен после победы');
+  }).catch(err => {
+    console.error('❌ Ошибка сохранения:', err);
+  });
+  
+  // Обновляем HUD через SceneManager
+  if (window.sceneManager) {
+    window.sceneManager.updateAllDisplays();
+  }
+  
+  // Автоматическое возвращение через 3 секунды
+  this.returnToMenuTimeout = setTimeout(() => {
+    console.log('🔄 Автоматический возврат в меню...');
     if (window.sceneManager) {
-      window.sceneManager.updateAllDisplays();
+      window.sceneManager.showScene('menu');
     }
-    
-    // Автоматическое возвращение через 3 секунды
-    if (this.returnToMenuTimeout) {
-      clearTimeout(this.returnToMenuTimeout);
-    }
-    
-    this.returnToMenuTimeout = setTimeout(() => {
-      if (window.sceneManager) {
-        window.sceneManager.showScene('menu');
-      }
-    }, 3000);
-  }
-
-  gameOver() {
-    if (!this.isBattleActive) return;
-    
-    this.log('❌ Персонаж погиб');
-    this.log('💀 Вы проиграли битву');
-    this.log(`🔄 Возвращаемся в меню...`);
-    
-    // Останавливаем битву
-    this.stopBattle();
-    
-    // Сохраняем прогресс
-    savePlayer(player);
-    
-    // Немедленное возвращение в меню
-    if (this.returnToMenuTimeout) {
-      clearTimeout(this.returnToMenuTimeout);
-    }
-    
-    this.returnToMenuTimeout = setTimeout(() => {
-      if (window.sceneManager) {
-        window.sceneManager.showScene('menu');
-      }
-    }, 2000);
-  }
+  }, 3000);
+}
 
   flee() {
     if (confirm('Вы уверены, что хотите сбежать?')) {
