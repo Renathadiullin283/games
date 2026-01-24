@@ -1,12 +1,14 @@
 import { player, resetPlayerHp } from "./game.js";
 import { LOCATIONS } from "./data.js";
 import { clear, drawStickman, drawHpBar, spawnDamageText, updateDamageTexts, screenShake } from "./render.js";
+import { savePlayer } from "./telegramSave.js"; // Импорт должен быть в начале файла
 
 const logEl = document.getElementById("log");
 
 let enemy = null;
 let enemyMaxHp = 0;
 let attackPhase = 0;
+let animationId = null; // Добавляем переменную для контроля анимации
 
 // Обновление HUD
 function updateHUD() {
@@ -23,16 +25,30 @@ export function startRun(locationId) {
   let enemyIndex = 0;
   spawnEnemy(enemyIndex, location);
 
+  // Останавливаем предыдущую анимацию, если есть
+  if (animationId) {
+    cancelAnimationFrame(animationId);
+  }
+
   const interval = setInterval(() => {
     if (player.currentHp <= 0) {
       log("❌ Персонаж погиб");
       clearInterval(interval);
+      stopAnimation(); // Останавливаем анимацию
+      savePlayer(player); // Сохраняем прогресс
       return;
     }
 
     if (enemyIndex >= location.enemies) {
       log("✅ Локация зачищена");
       clearInterval(interval);
+      stopAnimation(); // Останавливаем анимацию
+      
+      // Награда за прохождение локации
+      player.gold += 50;
+      player.level += 1;
+      savePlayer(player); // Сохраняем прогресс
+      
       return;
     }
 
@@ -48,10 +64,21 @@ export function startRun(locationId) {
     attackPhase = 10;
 
     if (enemy.hp <= 0) {
+      // Награда за убитого врага
+      player.gold += 10; // Маленькая награда за каждого врага
+      log(`💰 Получено 10 золота за убийство врага`);
+      
       enemyIndex++;
       if (enemyIndex >= location.enemies) {
         log("🏆 Все враги побеждены");
         clearInterval(interval);
+        stopAnimation(); // Останавливаем анимацию
+        
+        // Финальная награда
+        player.gold += 50;
+        player.level += 1;
+        savePlayer(player);
+        
         return;
       }
       spawnEnemy(enemyIndex, location);
@@ -66,10 +93,7 @@ export function startRun(locationId) {
     updateHUD();
   }, 1000);
 
-  animate();
-  player.gold += 50; // пример лута
-  player.level += 1; // пример опыта
-  savePlayer(player);
+  animate(); // Запускаем анимацию
 }
 
 function spawnEnemy(index, location) {
@@ -97,16 +121,17 @@ function animate() {
 
   updateDamageTexts();
 
-  requestAnimationFrame(animate);
+  // Сохраняем ID анимации для возможности остановки
+  animationId = requestAnimationFrame(animate);
 }
-if (animationId) cancelAnimationFrame(animationId);
+
+function stopAnimation() {
+  if (animationId) {
+    cancelAnimationFrame(animationId);
+    animationId = null;
+  }
+}
 
 function log(text) {
   logEl.textContent += text + "\n";
 }
-// После убийства врага или завершения локации
-player.gold += 50; // пример лута
-player.level += 1; // пример опыта
-
-// Сохраняем прогресс
-import { savePlayer } from "./telegramSave.js";
