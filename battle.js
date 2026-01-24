@@ -67,6 +67,9 @@ export function startRun(locationId) {
   }, 1000);
 
   animate();
+  player.gold += 50; // пример лута
+  player.level += 1; // пример опыта
+  savePlayer(player);
 }
 
 function spawnEnemy(index, location) {
@@ -107,4 +110,3 @@ player.level += 1; // пример опыта
 
 // Сохраняем прогресс
 import { savePlayer } from "./telegramSave.js";
-savePlayer(player);
