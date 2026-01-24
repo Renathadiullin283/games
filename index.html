@@ -50,55 +50,51 @@
   </div>
   
   <!-- Сцена 2: Выбор локации и битва -->
-  <div id="scene-battle" class="scene">
-    <header class="scene-header">
-      <button class="btn-back" data-scene="menu">← Назад</button>
-      <span>⚔️ Битва</span>
-    </header>
-    
-    <div class="battle-content">
-      <div class="battle-hud">
-        <div class="hud-row">
-          <div class="hud-item">Уровень: <span id="battle-level">1</span></div>
-          <div class="hud-item">Золото: <span id="battle-gold">0</span></div>
-          <div class="hud-item">Врагов: <span id="battle-enemies">0/5</span></div>
-        </div>
-        <div class="hud-row">
-          <div class="hud-item">HP: <span id="battle-hp">100/100</span></div>
-          <div class="hud-item">Урон: <span id="battle-atk">10</span></div>
-          <div class="hud-item">Защита: <span id="battle-def">5</span></div>
-        </div>
+<!-- В сцене битвы (index.html) -->
+<div id="scene-battle" class="scene">
+  <header class="scene-header">
+    <button class="btn-back" data-scene="menu">← Назад</button>
+    <span id="battle-location-name">⚔️ Путешествие</span>
+  </header>
+  
+  <div class="battle-content">
+    <div class="battle-hud">
+      <div class="hud-row">
+        <div class="hud-item">Уровень: <span id="battle-level">1</span></div>
+        <div class="hud-item">Золото: <span id="battle-gold">0</span></div>
+        <div class="hud-item">Прогресс: <span id="battle-progress">0%</span></div>
       </div>
-      
-      <div class="battle-canvas-container">
-        <canvas id="battle-canvas" width="400" height="200"></canvas>
-        
-        <div class="battle-controls">
-          <button id="btn-attack" class="battle-btn">⚔️ Атаковать</button>
-          <button id="btn-defend" class="battle-btn">🛡️ Защита</button>
-          <button id="btn-skill" class="battle-btn">✨ Умение</button>
-          <button id="btn-flee" class="battle-btn">🏃‍♂️ Бежать</button>
-        <div class="skills-container">
-  <!-- Умения будут добавляться динамически -->
-        </div>
-
-<div class="auto-battle-info">
-  ⚡ Автоматический бой: персонаж атакует каждую секунду, умения применяются автоматически!
-</div>
-        </div>
-      </div>
-      
-      <div class="location-selection">
-        <h3>Выберите локацию:</h3>
-        <div id="location-list" class="location-list"></div>
-      </div>
-      
-      <div class="battle-log">
-        <h4>Журнал боя:</h4>
-        <div id="battle-log" class="log-content"></div>
+      <div class="hud-row">
+        <div class="hud-item">HP: <span id="battle-hp">100/100</span></div>
+        <div class="hud-item">Урон: <span id="battle-atk">10</span></div>
+        <div class="hud-item">Врагов: <span id="battle-enemies">0</span></div>
       </div>
     </div>
+    
+    <div class="battle-canvas-container">
+      <canvas id="battle-canvas" width="400" height="200"></canvas>
+      
+      <!-- Контейнер умений (только в бою) -->
+      <div id="skills-container" class="skills-container" style="display: none;">
+        <!-- Умения будут добавляться динамически -->
+      </div>
+      
+      <div class="battle-controls">
+        <!-- Кнопки добавятся через JS -->
+      </div>
+      
+      <div class="travel-info">
+        <p>🚶 Ваш персонаж путешествует по локации. Враги появляются каждые 5-10 секунд.</p>
+        <p>⚡ Используйте ускорение для быстрого прохождения.</p>
+      </div>
+    </div>
+    
+    <div class="battle-log">
+      <h4>Журнал событий:</h4>
+      <div id="battle-log" class="log-content"></div>
+    </div>
   </div>
+</div>
   
   <!-- Сцена 3: Инвентарь -->
   <div id="scene-inventory" class="scene">
