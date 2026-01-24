@@ -1,1 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Stickman Idle RPG</title>
+</head>
+<body>
+  <h2>Stickman Idle RPG (DEBUG)</h2>
+  <button onclick="start()">Отправиться в локацию</button>
+
+  <script type="module">
+    import { startRun } from "./battle.js";
+    window.start = () => startRun("factory");
+  </script>
+</body>
+</html>
 
