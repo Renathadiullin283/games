@@ -3,20 +3,44 @@
 <head>
   <meta charset="UTF-8" />
   <title>Stickman Idle RPG</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<h2>Stickman Idle RPG (DEBUG)</h2>
+<header>Stickman Idle RPG</header>
 
-<canvas id="game" width="400" height="200"></canvas>
-<br />
-<button onclick="startRun()">Отправиться в локацию</button>
+<div id="hud">
+  <div id="hp">HP: 5000</div>
+  <div id="gold">Gold: 100000</div>
+  <div id="level">Lvl: 50</div>
+</div>
 
-<pre id="log"></pre>
+<div id="game-container">
+  <canvas id="game" width="400" height="200"></canvas>
+
+  <div id="controls">
+    <button id="btn-battle">Битва</button>
+    <button id="btn-inventory">Инвентарь</button>
+    <button id="btn-shop">Магазин</button>
+  </div>
+
+  <pre id="log"></pre>
+</div>
 
 <script type="module">
   import { startRun } from "./battle.js";
-  window.startRun = () => startRun("factory");
+
+  document.getElementById("btn-battle").onclick = () => {
+    startRun("factory");
+  };
+
+  document.getElementById("btn-inventory").onclick = () => {
+    alert("Инвентарь пока пустой (заготовка)");
+  };
+
+  document.getElementById("btn-shop").onclick = () => {
+    alert("Магазин пока пустой (заготовка)");
+  };
 </script>
 
 </body>
