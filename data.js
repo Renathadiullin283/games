@@ -1,4 +1,21 @@
-
+// data.js
+export const ACHIEVEMENTS = {
+  FIRST_BATTLE: {
+    id: 'first_battle',
+    name: 'Первая кровь',
+    description: 'Победить первого врага',
+    reward: { gold: 50 },
+    condition: (player) => player.enemiesDefeated >= 1
+  },
+  COLLECTOR: {
+    id: 'collector',
+    name: 'Коллекционер',
+    description: 'Собрать 10 предметов',
+    reward: { gold: 100, item: 'special_chest' },
+    condition: (player) => player.itemsCollected >= 10
+  },
+  // ... больше достижений
+};
 
 export const SAVE_KEYS = {
   PLAYER: "stickman_rpg_player",
