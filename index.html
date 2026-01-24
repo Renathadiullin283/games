@@ -57,10 +57,10 @@ document.getElementById("btn-locations").onclick = () => {
   locationDiv.style.flexDirection = "column";
   locationDiv.style.alignItems = "center";
 
-  Object.keys(LOCATIONS).forEach(locId => {
-    const loc = LOCATIONS[locId];
+  // Правильный перебор объектов LOCATIONS
+  for (const [locId, loc] of Object.entries(LOCATIONS)) {
     const btn = document.createElement("button");
-    btn.textContent = `${loc.name} (Ур: ${loc.level})`;
+    btn.textContent = `${loc.name} (Ур: ${loc.level})`; // теперь level точно есть
     btn.style.width = "80%";
     btn.style.margin = "5px 0";
     btn.onclick = () => {
@@ -69,8 +69,9 @@ document.getElementById("btn-locations").onclick = () => {
       startRun(locId);
     };
     locationDiv.appendChild(btn);
-  });
+  }
 };
+
 
 // Инвентарь
 document.getElementById("btn-inventory").onclick = () => {
