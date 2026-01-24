@@ -2,106 +2,274 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Stickman Idle RPG</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Stickman RPG</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<header>Stickman Idle RPG</header>
-
-<div id="hud">
-  <div id="hp">HP: 5000</div>
-  <div id="gold">Gold: 100000</div>
-  <div id="level">Lvl: 50</div>
+<!-- Все сцены скрыты по умолчанию, показывается только активная -->
+<div id="scene-container">
+  
+  <!-- Сцена 1: Главное меню -->
+  <div id="scene-menu" class="scene active">
+    <header class="scene-header">🏰 Stickman RPG</header>
+    
+    <div class="menu-content">
+      <div class="player-info">
+        <div class="player-card">
+          <div class="player-avatar">⚔️</div>
+          <div class="player-stats">
+            <div>Уровень: <span id="menu-level">1</span></div>
+            <div>Золото: <span id="menu-gold">0</span></div>
+            <div>Класс: <span id="menu-class">Воин</span></div>
+          </div>
+        </div>
+        
+        <div class="player-hp">
+          <div class="hp-label">Здоровье</div>
+          <div class="hp-bar">
+            <div class="hp-fill" id="menu-hp-bar"></div>
+          </div>
+          <span id="menu-hp">100/100</span>
+        </div>
+      </div>
+      
+      <div class="menu-buttons">
+        <button class="menu-btn" data-scene="battle">⚔️ Локации</button>
+        <button class="menu-btn" data-scene="inventory">🎒 Инвентарь</button>
+        <button class="menu-btn" data-scene="shop">🛒 Магазин</button>
+        <button class="menu-btn" data-scene="skills">✨ Навыки</button>
+        <button class="menu-btn" data-scene="options">⚙️ Настройки</button>
+      </div>
+    </div>
+    
+    <div class="scene-footer">
+      <button id="btn-debug" class="btn-small">Отладка</button>
+    </div>
+  </div>
+  
+  <!-- Сцена 2: Выбор локации и битва -->
+  <div id="scene-battle" class="scene">
+    <header class="scene-header">
+      <button class="btn-back" data-scene="menu">← Назад</button>
+      <span>⚔️ Битва</span>
+    </header>
+    
+    <div class="battle-content">
+      <div class="battle-hud">
+        <div class="hud-row">
+          <div class="hud-item">Уровень: <span id="battle-level">1</span></div>
+          <div class="hud-item">Золото: <span id="battle-gold">0</span></div>
+          <div class="hud-item">Врагов: <span id="battle-enemies">0/5</span></div>
+        </div>
+        <div class="hud-row">
+          <div class="hud-item">HP: <span id="battle-hp">100/100</span></div>
+          <div class="hud-item">Урон: <span id="battle-atk">10</span></div>
+          <div class="hud-item">Защита: <span id="battle-def">5</span></div>
+        </div>
+      </div>
+      
+      <div class="battle-canvas-container">
+        <canvas id="battle-canvas" width="400" height="200"></canvas>
+        <div class="battle-controls">
+          <button id="btn-attack" class="battle-btn">⚔️ Атаковать</button>
+          <button id="btn-defend" class="battle-btn">🛡️ Защита</button>
+          <button id="btn-skill" class="battle-btn">✨ Умение</button>
+          <button id="btn-flee" class="battle-btn">🏃‍♂️ Бежать</button>
+        </div>
+      </div>
+      
+      <div class="location-selection">
+        <h3>Выберите локацию:</h3>
+        <div id="location-list" class="location-list"></div>
+      </div>
+      
+      <div class="battle-log">
+        <h4>Журнал боя:</h4>
+        <div id="battle-log" class="log-content"></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Сцена 3: Инвентарь -->
+  <div id="scene-inventory" class="scene">
+    <header class="scene-header">
+      <button class="btn-back" data-scene="menu">← Назад</button>
+      <span>🎒 Инвентарь</span>
+    </header>
+    
+    <div class="inventory-content">
+      <div class="inventory-stats">
+        <h3>Характеристики</h3>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-name">Здоровье</div>
+            <div class="stat-value" id="stat-hp">100</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-name">Урон</div>
+            <div class="stat-value" id="stat-atk">10</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-name">Защита</div>
+            <div class="stat-value" id="stat-def">5</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-name">Крит. шанс</div>
+            <div class="stat-value" id="stat-crit">5%</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="inventory-items">
+        <h3>Предметы</h3>
+        <div id="inventory-list" class="items-list">
+          <div class="empty-inventory">Инвентарь пуст</div>
+        </div>
+      </div>
+      
+      <div class="inventory-equipment">
+        <h3>Экипировка</h3>
+        <div class="equipment-slots">
+          <div class="slot" data-slot="weapon">🗡️ Оружие</div>
+          <div class="slot" data-slot="armor">🛡️ Броня</div>
+          <div class="slot" data-slot="helmet">⛑️ Шлем</div>
+          <div class="slot" data-slot="boots">👢 Ботинки</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Сцена 4: Магазин -->
+  <div id="scene-shop" class="scene">
+    <header class="scene-header">
+      <button class="btn-back" data-scene="menu">← Назад</button>
+      <span>🛒 Магазин</span>
+    </header>
+    
+    <div class="shop-content">
+      <div class="shop-balance">
+        <div class="balance-item">Золото: <span id="shop-gold">0</span></div>
+        <div class="balance-item">Кристаллы: <span id="shop-gems">0</span></div>
+      </div>
+      
+      <div class="shop-tabs">
+        <button class="shop-tab active" data-tab="weapons">Оружие</button>
+        <button class="shop-tab" data-tab="armor">Броня</button>
+        <button class="shop-tab" data-tab="potions">Зелья</button>
+        <button class="shop-tab" data-tab="special">Особое</button>
+      </div>
+      
+      <div class="shop-items">
+        <div id="shop-weapons" class="shop-category active">
+          <!-- Товары будут добавляться через JS -->
+        </div>
+        <div id="shop-armor" class="shop-category">
+          <!-- Товары будут добавляться через JS -->
+        </div>
+        <div id="shop-potions" class="shop-category">
+          <!-- Товары будут добавляться через JS -->
+        </div>
+        <div id="shop-special" class="shop-category">
+          <!-- Товары будут добавляться через JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Сцена 5: Навыки -->
+  <div id="scene-skills" class="scene">
+    <header class="scene-header">
+      <button class="btn-back" data-scene="menu">← Назад</button>
+      <span>✨ Навыки</span>
+    </header>
+    
+    <div class="skills-content">
+      <div class="skills-info">
+        <div>Очки навыков: <span id="skill-points">0</span></div>
+      </div>
+      
+      <div class="skills-tree">
+        <div class="skill-category">
+          <h3>⚔️ Атака</h3>
+          <div class="skill-list">
+            <div class="skill" data-skill="power-strike">
+              <div class="skill-name">Мощный удар</div>
+              <div class="skill-desc">+20% к урону</div>
+              <div class="skill-cost">1 очко</div>
+              <button class="btn-learn">Изучить</button>
+            </div>
+            <div class="skill" data-skill="crit-master">
+              <div class="skill-name">Крит. мастер</div>
+              <div class="skill-desc">+10% к шансу крита</div>
+              <div class="skill-cost">2 очка</div>
+              <button class="btn-learn">Изучить</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="skill-category">
+          <h3>🛡️ Защита</h3>
+          <div class="skill-list">
+            <div class="skill" data-skill="iron-skin">
+              <div class="skill-name">Железная кожа</div>
+              <div class="skill-desc">+15% к защите</div>
+              <div class="skill-cost">1 очко</div>
+              <button class="btn-learn">Изучить</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Сцена 6: Настройки -->
+  <div id="scene-options" class="scene">
+    <header class="scene-header">
+      <button class="btn-back" data-scene="menu">← Назад</button>
+      <span>⚙️ Настройки</span>
+    </header>
+    
+    <div class="options-content">
+      <div class="options-section">
+        <h3>Звук</h3>
+        <div class="option">
+          <label>Громкость музыки</label>
+          <input type="range" id="music-volume" min="0" max="100" value="50">
+        </div>
+        <div class="option">
+          <label>Громкость эффектов</label>
+          <input type="range" id="sfx-volume" min="0" max="100" value="70">
+        </div>
+      </div>
+      
+      <div class="options-section">
+        <h3>Игровой процесс</h3>
+        <div class="option">
+          <label>
+            <input type="checkbox" id="option-autosave" checked>
+            Автосохранение
+          </label>
+        </div>
+        <div class="option">
+          <label>
+            <input type="checkbox" id="option-animations" checked>
+            Анимации
+          </label>
+        </div>
+      </div>
+      
+      <div class="options-section">
+        <h3>Система</h3>
+        <button id="btn-clear-save" class="btn-danger">🧹 Очистить сохранения</button>
+        <button id="btn-export-save" class="btn-secondary">📤 Экспорт</button>
+        <button id="btn-import-save" class="btn-secondary">📥 Импорт</button>
+      </div>
+    </div>
+  </div>
 </div>
 
-<div id="game-container">
-  <canvas id="game" width="400" height="200"></canvas>
-
-  <div id="controls">
-    <button id="btn-locations">Локации</button>
-    <button id="btn-inventory">Инвентарь</button>
-    <button id="btn-shop">Магазин</button>
-  </div>
-
-  <div id="location-selection" style="display:none; width: 100%; margin-top: 10px;">
-    <!-- Кнопки локаций появятся сюда через JS -->
-  </div>
-
-  <pre id="log"></pre>
-</div>
-
-<script type="module">
-import { startRun } from "./battle.js";
-import { player } from "./game.js";
-import { loadPlayer, savePlayer } from "./telegramSave.js";
-import { LOCATIONS } from "./data.js";
-
-const hudHP = document.getElementById("hp");
-const hudGold = document.getElementById("gold");
-const hudLevel = document.getElementById("level");
-const logEl = document.getElementById("log");
-const locationDiv = document.getElementById("location-selection");
-
-// HUD
-function updateHUD() {
-  hudHP.textContent = `HP: ${player.currentHp}`;
-  hudGold.textContent = `Gold: ${player.gold}`;
-  hudLevel.textContent = `Lvl: ${player.level}`;
-}
-setInterval(updateHUD, 500);
-
-// Кнопка Локации
-document.getElementById("btn-locations").onclick = () => {
-  locationDiv.innerHTML = ""; // очистка
-  locationDiv.style.display = "flex";
-  locationDiv.style.flexDirection = "column";
-  locationDiv.style.alignItems = "center";
-
-  // Правильный перебор объектов LOCATIONS
-  for (const [locId, loc] of Object.entries(LOCATIONS)) {
-    const btn = document.createElement("button");
-    btn.textContent = `${loc.name} (Ур: ${loc.level})`; // теперь level точно есть
-    btn.style.width = "80%";
-    btn.style.margin = "5px 0";
-    btn.onclick = () => {
-      locationDiv.style.display = "none";
-      logEl.textContent = `Вы выбрали: ${loc.name}\n`;
-      startRun(locId);
-    };
-    locationDiv.appendChild(btn);
-  }
-};
-
-
-// Инвентарь
-document.getElementById("btn-inventory").onclick = () => {
-  alert("Инвентарь пока пустой (заготовка)");
-};
-
-// Магазин
-document.getElementById("btn-shop").onclick = () => {
-  alert("Магазин пока пустой (заготовка)");
-};
-// Функция инициализации Telegram WebApp
-async function initTelegram() {
-  if (window.Telegram?.WebApp) {
-    Telegram.WebApp.ready();
-    Telegram.WebApp.expand();
-    console.log("Запущено в Telegram:", Telegram.WebApp.initDataUnsafe.user);
-
-    const savedPlayer = await loadPlayer(player);
-    Object.assign(player, savedPlayer); // загружаем прогресс
-  }
-}
-
-initTelegram();
-
-// После любого изменения игрока, вызываем:
-function onPlayerUpdate() {
-  savePlayer(player);
-}
-</script>
-
+<script type="module" src="main.js"></script>
 </body>
 </html>
