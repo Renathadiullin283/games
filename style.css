@@ -543,7 +543,164 @@ body {
   padding: 15px;
   border-left: 4px solid #3498db;
 }
+/* Добавьте эти стили в style.css */
 
+/* Контейнер умений в битве */
+.skills-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  margin: 10px 0;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.skill-item {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  padding: 8px;
+  text-align: center;
+  font-size: 0.8em;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.skill-name {
+  font-weight: bold;
+  color: #3498db;
+  margin-bottom: 4px;
+  font-size: 0.75em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.skill-cooldown {
+  font-size: 1em;
+  font-weight: bold;
+  margin: 4px 0;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.skill-cooldown.ready {
+  color: #2ecc71;
+  background: rgba(46, 204, 113, 0.1);
+}
+
+.skill-cooldown.cooldown {
+  color: #f39c12;
+  background: rgba(243, 156, 18, 0.1);
+}
+
+.skill-bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.skill-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3498db, #2ecc71);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* Кнопки управления */
+.battle-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.battle-btn {
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.battle-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+#btn-pause {
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+}
+
+#btn-flee {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+}
+
+/* Информация об авто-бое */
+.auto-battle-info {
+  background: rgba(52, 152, 219, 0.1);
+  border-left: 3px solid #3498db;
+  padding: 8px 12px;
+  margin: 10px 0;
+  border-radius: 4px;
+  font-size: 0.85em;
+  color: #bdc3c7;
+}
+
+/* Лог боя */
+#battle-log {
+  height: 120px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 0.85em;
+  font-family: 'Courier New', monospace;
+}
+
+.log-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.log-content div {
+  padding: 2px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  animation: fadeIn 0.3s ease;
+}
+
+.log-content small {
+  color: #7f8c8d;
+  font-size: 0.75em;
+  margin-right: 5px;
+}
+
+/* Анимация появления */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Адаптивность */
+@media (max-width: 500px) {
+  .skills-container {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .skill-name {
+    font-size: 0.7em;
+  }
+  
+  .battle-controls {
+    grid-template-columns: 1fr;
+  }
+}
 .btn-learn {
   background: #4cd137;
   border: none;
