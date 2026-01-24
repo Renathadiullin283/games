@@ -225,38 +225,52 @@ class BattleSystem {
     }
   }
 
-  addTravelUI() {
-    const battleControls = document.querySelector('.battle-controls');
-    if (!battleControls) return;
-    
-    // Кнопка паузы
-    const pauseBtn = document.createElement('button');
-    pauseBtn.id = 'btn-pause';
-    pauseBtn.className = 'battle-btn';
-    pauseBtn.innerHTML = '⏸️ Пауза';
-    pauseBtn.style.background = 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)';
-    pauseBtn.addEventListener('click', () => this.togglePause());
-    
-    // Кнопка бегства
-    const fleeBtn = document.createElement('button');
-    fleeBtn.id = 'btn-flee';
-    fleeBtn.className = 'battle-btn';
-    fleeBtn.innerHTML = '🏃‍♂️ Покинуть локацию';
-    fleeBtn.style.background = 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)';
-    fleeBtn.addEventListener('click', () => this.leaveLocation());
-    
-    // Кнопка ускорения (если нужно)
-    const speedBtn = document.createElement('button');
-    speedBtn.id = 'btn-speed';
-    speedBtn.className = 'battle-btn';
-    speedBtn.innerHTML = '⚡ x2 Скорость';
-    speedBtn.style.background = 'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)';
-    speedBtn.addEventListener('click', () => this.toggleSpeed());
-    
-    battleControls.appendChild(pauseBtn);
-    battleControls.appendChild(fleeBtn);
-    battleControls.appendChild(speedBtn);
+addTravelUI() {
+  const battleControls = document.querySelector('.battle-controls');
+  if (!battleControls) return;
+  
+  battleControls.innerHTML = '';
+  
+  // Кнопка возврата к выбору локаций
+  const backBtn = document.createElement('button');
+  backBtn.id = 'btn-back-to-locations';
+  backBtn.className = 'battle-btn btn-back-to-locations';
+  backBtn.innerHTML = '← Вернуться к выбору локаций';
+  backBtn.style.background = 'linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%)';
+  backBtn.addEventListener('click', () => this.returnToLocationSelection());
+  
+  // Кнопка паузы
+  const pauseBtn = document.createElement('button');
+  pauseBtn.id = 'btn-pause';
+  pauseBtn.className = 'battle-btn';
+  pauseBtn.innerHTML = '⏸️ Пауза';
+  pauseBtn.style.background = 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)';
+  pauseBtn.addEventListener('click', () => this.togglePause());
+  
+  // Кнопка ускорения
+  const speedBtn = document.createElement('button');
+  speedBtn.id = 'btn-speed';
+  speedBtn.className = 'battle-btn';
+  speedBtn.innerHTML = '⚡ x2 Скорость';
+  speedBtn.style.background = 'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)';
+  speedBtn.addEventListener('click', () => this.toggleSpeed());
+  
+  battleControls.appendChild(backBtn);
+  battleControls.appendChild(pauseBtn);
+  battleControls.appendChild(speedBtn);
+}
+
+returnToLocationSelection() {
+  if (this.isBattleActive) {
+    if (confirm('Вы уверены, что хотите прервать путешествие и вернуться к выбору локаций?')) {
+      this.stopBattle();
+      this.showLocationSelection();
+      this.log('🔄 Возвращаемся к выбору локаций');
+    }
+  } else {
+    this.showLocationSelection();
   }
+}
 
   async startBattle(locationId) {
     console.log('🚶 Начинаем путешествие по локации:', locationId);
