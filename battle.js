@@ -100,3 +100,10 @@ function animate() {
 function log(text) {
   logEl.textContent += text + "\n";
 }
+// После убийства врага или завершения локации
+player.gold += 50; // пример лута
+player.level += 1; // пример опыта
+
+// Сохраняем прогресс
+import { savePlayer } from "./telegramSave.js";
+savePlayer(player);
