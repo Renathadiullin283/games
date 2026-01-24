@@ -1,3 +1,10 @@
+export const SAVE_KEYS = {
+  PLAYER: "player_data",
+  INVENTORY: "inventory_data",
+  PROGRESS: "progress_data",
+};
+
+
 export const CLASSES = {
   warrior: {
     name: "Воин",
