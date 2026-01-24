@@ -114,54 +114,61 @@
   </div>
 </div>
   <!-- Сцена 3: Инвентарь -->
-  <div id="scene-inventory" class="scene">
-    <header class="scene-header">
-      <button class="btn-back" data-scene="menu">← Назад</button>
-      <span>🎒 Инвентарь</span>
-    </header>
+ <!-- В сцене инвентаря (index.html) -->
+<div id="scene-inventory" class="scene">
+  <header class="scene-header">
+    <button class="btn-back" data-scene="menu">← Назад</button>
+    <span>🎒 Инвентарь</span>
+  </header>
+  
+  <div class="inventory-content">
+    <div class="inventory-header">
+      <div class="inventory-title">Экипировка и предметы</div>
+      <div class="inventory-count">Предметы: <span id="item-count">0/20</span></div>
+    </div>
     
-    <div class="inventory-content">
-      <div class="inventory-stats">
-        <h3>Характеристики</h3>
-        <div class="stats-grid">
-          <div class="stat-item">
-            <div class="stat-name">Здоровье</div>
-            <div class="stat-value" id="stat-hp">100</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-name">Урон</div>
-            <div class="stat-value" id="stat-atk">10</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-name">Защита</div>
-            <div class="stat-value" id="stat-def">5</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-name">Крит. шанс</div>
-            <div class="stat-value" id="stat-crit">5%</div>
-          </div>
+    <div class="inventory-stats">
+      <h3>📊 Характеристики</h3>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-name">Здоровье</div>
+          <div class="stat-value" id="stat-hp">100</div>
         </div>
-      </div>
-      
-      <div class="inventory-items">
-        <h3>Предметы</h3>
-        <div id="inventory-list" class="items-list">
-          <div class="empty-inventory">Инвентарь пуст</div>
+        <div class="stat-item">
+          <div class="stat-name">Урон</div>
+          <div class="stat-value" id="stat-atk">10</div>
         </div>
-      </div>
-      
-      <div class="inventory-equipment">
-        <h3>Экипировка</h3>
-        <div class="equipment-slots">
-          <div class="slot" data-slot="weapon">🗡️ Оружие</div>
-          <div class="slot" data-slot="armor">🛡️ Броня</div>
-          <div class="slot" data-slot="helmet">⛑️ Шлем</div>
-          <div class="slot" data-slot="boots">👢 Ботинки</div>
+        <div class="stat-item">
+          <div class="stat-name">Защита</div>
+          <div class="stat-value" id="stat-def">5</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-name">Крит. шанс</div>
+          <div class="stat-value" id="stat-crit">5%</div>
         </div>
       </div>
     </div>
+    
+    <div class="inventory-items">
+      <h3>📦 Предметы</h3>
+      <div id="inventory-list" class="items-list">
+        <div class="empty-inventory">Инвентарь пуст</div>
+      </div>
+    </div>
+    
+    <div class="inventory-equipment">
+      <h3>⚔️ Экипировка</h3>
+      <div class="equipment-slots">
+        <div class="slot" data-slot="weapon"></div>
+        <div class="slot" data-slot="armor"></div>
+        <div class="slot" data-slot="helmet"></div>
+        <div class="slot" data-slot="boots"></div>
+        <div class="slot" data-slot="ring"></div>
+        <div class="slot" data-slot="amulet"></div>
+      </div>
+    </div>
   </div>
-  
+</div>
   <!-- Сцена 4: Магазин -->
   <div id="scene-shop" class="scene">
     <header class="scene-header">
