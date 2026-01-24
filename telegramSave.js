@@ -114,3 +114,31 @@ export function debugSaveSystem() {
     console.log("CloudStorage методы:", Object.keys(Telegram.WebApp.CloudStorage));
   }
 }
+export class OfflineStorage {
+  constructor() {
+    this.cache = new Map();
+  }
+  
+  async set(key, value) {
+    this.cache.set(key, value);
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+  
+  async get(key) {
+    if (this.cache.has(key)) {
+      return this.cache.get(key);
+    }
+    
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : null;
+  }
+  
+  // Синхронизация с Telegram CloudStorage при подключении
+  async syncWithTelegram() {
+    if (!window.Telegram?.WebApp?.CloudStorage) return;
+    
+    for (const [key, value] of this.cache) {
+      await Telegram.WebApp.CloudStorage.setItem(key, JSON.stringify(value));
+    }
+  }
+}
