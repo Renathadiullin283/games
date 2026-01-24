@@ -1,4 +1,5 @@
 // telegramSave.js
+import { SAVE_KEYS } from "./data.js";
 export async function savePlayer(player) {
   if (!window.Telegram?.WebApp?.CloudStorage) return;
   try {
