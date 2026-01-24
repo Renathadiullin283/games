@@ -1,14 +1,13 @@
-// game.js
-import { CLASSES } from "./data.js";
 import { DEBUG_PLAYER } from "./debug.js";
 
 export const player = {
-  ...DEBUG_PLAYER,
+  level: DEBUG_PLAYER.level,
+  gold: DEBUG_PLAYER.gold,
+  stats: { ...DEBUG_PLAYER.stats },
   maxHp: DEBUG_PLAYER.stats.hp,
   currentHp: DEBUG_PLAYER.stats.hp,
 };
 
-export function resetHP() {
+export function resetPlayerHp() {
   player.currentHp = player.maxHp;
 }
-
