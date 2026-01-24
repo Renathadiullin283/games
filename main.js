@@ -35,24 +35,31 @@ class SceneManager {
     console.log('🎮 Игра готова!');
   }
 
-  showScene(sceneName) {
-    // Скрываем все сцены
-    Object.values(this.scenes).forEach(scene => {
-      scene.classList.remove('active');
-    });
+showScene(sceneName) {
+  // Скрываем все сцены
+  Object.values(this.scenes).forEach(scene => {
+    scene.classList.remove('active');
+  });
+  
+  // Показываем выбранную сцену
+  if (this.scenes[sceneName]) {
+    this.scenes[sceneName].classList.add('active');
+    this.currentScene = sceneName;
     
-    // Показываем выбранную сцену
-    if (this.scenes[sceneName]) {
-      this.scenes[sceneName].classList.add('active');
-      this.currentScene = sceneName;
-      
-      // Обновляем данные на сцене
-      this.updateScene(sceneName);
-      
-      console.log(`🔄 Переключились на сцену: ${sceneName}`);
+    // Обновляем данные на сцене
+    this.updateScene(sceneName);
+    
+    // Особенная логика для сцены битвы
+    if (sceneName === 'battle') {
+      // Если битва не активна, показываем выбор локаций
+      if (window.battleSystem && !window.battleSystem.isBattleActive) {
+        window.battleSystem.showLocationSelection();
+      }
     }
+    
+    console.log(`🔄 Переключились на сцену: ${sceneName}`);
   }
-
+}
   updateScene(sceneName) {
     switch (sceneName) {
       case 'menu':
@@ -98,50 +105,45 @@ class SceneManager {
 updateBattle() {
   if (!player) return;
   
-  // Получаем все элементы HUD
-  const battleLevel = document.getElementById('battle-level');
-  const battleGold = document.getElementById('battle-gold');
-  const battleHp = document.getElementById('battle-hp');
-  const battleAtk = document.getElementById('battle-atk');
-  const battleDef = document.getElementById('battle-def');
-  const battleEnemies = document.getElementById('battle-enemies');
+  // Обновляем информацию о локациях при показе сцены
+  if (window.battleSystem && !window.battleSystem.isBattleActive) {
+    window.battleSystem.showLocationSelection();
+  }
   
-  // Безопасно обновляем каждый элемент
-  if (battleLevel) battleLevel.textContent = player.level;
-  if (battleGold) battleGold.textContent = player.gold;
-  if (battleHp) battleHp.textContent = `${player.currentHp}/${player.maxHp}`;
-  if (battleAtk) battleAtk.textContent = player.stats.atk;
-  if (battleDef) battleDef.textContent = player.stats.def;
+  // Обновляем HUD элементы
+  const elements = {
+    level: document.getElementById('battle-level'),
+    gold: document.getElementById('battle-gold'),
+    hp: document.getElementById('battle-hp'),
+    atk: document.getElementById('battle-atk'),
+    def: document.getElementById('battle-def'),
+    progress: document.getElementById('battle-progress'),
+    enemies: document.getElementById('battle-enemies')
+  };
+  
+  if (elements.level) elements.level.textContent = player.level;
+  if (elements.gold) elements.gold.textContent = player.gold;
+  if (elements.hp) elements.hp.textContent = `${player.currentHp}/${player.maxHp}`;
+  if (elements.atk) elements.atk.textContent = player.stats.atk;
+  if (elements.def) elements.def.textContent = player.stats.def;
   
   // Обновляем информацию о классе
+  this.updateClassInfo();
+}
+updateClassInfo() {
   const battleHUD = document.querySelector('.battle-hud');
-  if (battleHUD) {
-    // Удаляем старую информацию о классе
+  if (battleHUD && player) {
+    // Удаляем старую информацию
     const existingClassInfo = battleHUD.querySelector('.player-class-info');
-    if (existingClassInfo) {
-      existingClassInfo.remove();
-    }
+    if (existingClassInfo) existingClassInfo.remove();
     
-    // Добавляем новую информацию о классе
+    // Добавляем новую
     const classInfo = document.createElement('div');
     classInfo.className = 'player-class-info';
     classInfo.innerHTML = `Класс: ${player.classId === 'warrior' ? '⚔️ Воин' : '🗡️ Ассасин'}`;
-    classInfo.style.cssText = `
-      background: rgba(255, 255, 255, 0.05);
-      padding: 5px 10px;
-      border-radius: 5px;
-      margin-top: 5px;
-      font-size: 0.9em;
-      text-align: center;
-      color: ${player.classId === 'warrior' ? '#4cd137' : '#9b59b6'};
-    `;
     battleHUD.appendChild(classInfo);
   }
-  
-  // Обновляем список локаций
-  this.updateLocationList();
 }
-
 // Обновлённый updateLocationList
 updateLocationList() {
   const locationList = document.getElementById('location-list');
