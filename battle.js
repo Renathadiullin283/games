@@ -15,17 +15,18 @@ class BattleSystem {
     this.currentLocation = null;
     this.enemyIndex = 0;
     this.isBattleActive = false;
-    this.isAutoBattle = true; // Автоматический бой
+    this.isAutoBattle = true;
+    this.isPaused = false;
+    this.returnToMenuTimeout = null;
     
     // Настройки умений
     this.skills = {
-      // Воин
       warrior: [
         {
           id: 'powerStrike',
           name: 'Мощный удар',
           description: 'Наносит 200% урона',
-          cooldown: 5, // 5 секунд
+          cooldown: 5,
           lastUsed: 0,
           effect: (baseDamage) => Math.floor(baseDamage * 2.0)
         },
@@ -36,20 +37,11 @@ class BattleSystem {
           cooldown: 8,
           lastUsed: 0,
           effect: (baseDamage) => {
-            this.stunEnemy(1); // Оглушение на 1 ход
+            this.stunEnemy(1);
             return Math.floor(baseDamage * 1.5);
           }
-        },
-        {
-          id: 'whirlwind',
-          name: 'Вихрь клинков',
-          description: 'Наносит урон всем врагам',
-          cooldown: 12,
-          lastUsed: 0,
-          effect: (baseDamage) => Math.floor(baseDamage * 2.5)
         }
       ],
-      // Ассасин
       assassin: [
         {
           id: 'backstab',
@@ -58,7 +50,7 @@ class BattleSystem {
           cooldown: 6,
           lastUsed: 0,
           effect: (baseDamage) => {
-            this.guaranteedCrit = true;
+            this.activeEffects.nextCrit = true;
             return Math.floor(baseDamage * 2.0);
           }
         },
@@ -69,19 +61,8 @@ class BattleSystem {
           cooldown: 7,
           lastUsed: 0,
           effect: (baseDamage) => {
-            this.applyPoison(3, Math.floor(baseDamage * 0.3)); // 3 хода, 30% от урона
+            this.applyPoison(3, Math.floor(baseDamage * 0.3));
             return Math.floor(baseDamage * 1.3);
-          }
-        },
-        {
-          id: 'shadowStep',
-          name: 'Шаг тени',
-          description: 'Уклоняется от следующей атаки',
-          cooldown: 10,
-          lastUsed: 0,
-          effect: (baseDamage) => {
-            this.dodgeNextAttack = true;
-            return Math.floor(baseDamage * 1.2);
           }
         }
       ]
@@ -103,70 +84,121 @@ class BattleSystem {
   }
 
   init() {
-    // Настройка canvas
+    if (!this.canvas) {
+      console.error('Canvas не найден!');
+      return;
+    }
+    
     this.canvas.width = 400;
     this.canvas.height = 200;
     
-    // Удаляем обработчики кнопок (они больше не нужны)
     this.removeBattleButtons();
-    
-    // Добавляем кнопку паузы/продолжения
     this.addPauseButton();
+    this.addSkillUI();
   }
 
   removeBattleButtons() {
-    // Скрываем кнопки битвы, оставляем только "Бежать"
     const battleControls = document.querySelector('.battle-controls');
     if (battleControls) {
-      // Оставляем только кнопку бегства
       const buttons = battleControls.querySelectorAll('button:not(#btn-flee)');
-      buttons.forEach(btn => btn.style.display = 'none');
+      buttons.forEach(btn => {
+        if (btn.id !== 'btn-pause') btn.style.display = 'none';
+      });
     }
   }
 
   addPauseButton() {
-    // Создаем кнопку паузы
+    let battleControls = document.querySelector('.battle-controls');
+    if (!battleControls) {
+      battleControls = document.createElement('div');
+      battleControls.className = 'battle-controls';
+      document.querySelector('.battle-canvas-container')?.appendChild(battleControls);
+    }
+    
+    // Очищаем старые кнопки (кроме кнопки бегства)
+    const existingPause = battleControls.querySelector('#btn-pause');
+    if (existingPause) existingPause.remove();
+    
     const pauseBtn = document.createElement('button');
     pauseBtn.id = 'btn-pause';
     pauseBtn.className = 'battle-btn';
     pauseBtn.innerHTML = '⏸️ Пауза';
     pauseBtn.style.background = 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)';
     
-    const battleControls = document.querySelector('.battle-controls');
-    if (battleControls) {
-      battleControls.appendChild(pauseBtn);
-    }
+    battleControls.appendChild(pauseBtn);
     
     pauseBtn.addEventListener('click', () => this.togglePause());
+    
+    // Кнопка бегства
+    let fleeBtn = battleControls.querySelector('#btn-flee');
+    if (!fleeBtn) {
+      fleeBtn = document.createElement('button');
+      fleeBtn.id = 'btn-flee';
+      fleeBtn.className = 'battle-btn';
+      fleeBtn.innerHTML = '🏃‍♂️ Бежать';
+      fleeBtn.style.background = 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)';
+      battleControls.appendChild(fleeBtn);
+      fleeBtn.addEventListener('click', () => this.flee());
+    }
+  }
+
+  addSkillUI() {
+    const skillsContainer = document.createElement('div');
+    skillsContainer.className = 'skills-container';
+    skillsContainer.id = 'skills-container';
+    
+    const battleCanvasContainer = document.querySelector('.battle-canvas-container');
+    if (battleCanvasContainer) {
+      const existingSkills = battleCanvasContainer.querySelector('#skills-container');
+      if (existingSkills) existingSkills.remove();
+      battleCanvasContainer.appendChild(skillsContainer);
+    }
   }
 
   togglePause() {
     if (!this.isBattleActive) return;
     
-    if (this.gameInterval) {
-      clearInterval(this.gameInterval);
-      this.gameInterval = null;
+    this.isPaused = !this.isPaused;
+    const pauseBtn = document.getElementById('btn-pause');
+    
+    if (this.isPaused) {
+      this.log('⏸️ Бой на паузе');
+      pauseBtn.innerHTML = '▶️ Продолжить';
+      pauseBtn.style.background = 'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)';
+      
+      if (this.gameInterval) {
+        clearInterval(this.gameInterval);
+        this.gameInterval = null;
+      }
       if (this.skillInterval) {
         clearInterval(this.skillInterval);
         this.skillInterval = null;
       }
-      document.getElementById('btn-pause').innerHTML = '▶️ Продолжить';
-      this.log('⏸️ Бой на паузе');
     } else {
-      this.startGameLoop();
-      document.getElementById('btn-pause').innerHTML = '⏸️ Пауза';
       this.log('▶️ Бой продолжается');
+      pauseBtn.innerHTML = '⏸️ Пауза';
+      pauseBtn.style.background = 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)';
+      
+      this.startGameLoop();
+      this.startSkillSystem();
     }
   }
 
   async startBattle(locationId) {
-    if (this.isBattleActive) {
-      this.stopBattle();
-    }
+    console.log('⚔️ Начинаем битву в локации:', locationId);
+    
+    // Останавливаем предыдущую битву, если была
+    this.stopBattle();
     
     this.currentLocation = LOCATIONS[locationId];
+    if (!this.currentLocation) {
+      console.error('Локация не найдена:', locationId);
+      return false;
+    }
+    
     this.enemyIndex = 0;
     this.isBattleActive = true;
+    this.isPaused = false;
     
     // Сбрасываем эффекты
     this.resetEffects();
@@ -197,7 +229,7 @@ class BattleSystem {
     }
     
     this.gameInterval = setInterval(() => {
-      if (!this.isBattleActive || player.currentHp <= 0) return;
+      if (!this.isBattleActive || this.isPaused || player.currentHp <= 0) return;
       
       // Автоматическая атака игрока
       this.autoPlayerAttack();
@@ -215,7 +247,7 @@ class BattleSystem {
       
       this.updateBattleHUD();
       
-    }, 1000); // Интервал 1 секунда
+    }, 1000);
   }
 
   startSkillSystem() {
@@ -223,83 +255,79 @@ class BattleSystem {
       clearInterval(this.skillInterval);
     }
     
-    // Используем умения каждые 3 секунды (можно настроить)
     this.skillInterval = setInterval(() => {
-      if (!this.isBattleActive || player.currentHp <= 0) return;
+      if (!this.isBattleActive || this.isPaused || player.currentHp <= 0) return;
       
       this.useRandomSkill();
       
-    }, 3000); // Каждые 3 секунды
+    }, 3000);
   }
 
   autoPlayerAttack() {
     if (!this.enemy || this.enemy.hp <= 0) return;
     
-    const currentTime = Date.now();
-    const playerClass = player.classId || 'warrior';
     let damage = player.stats.atk;
+    let isCrit = false;
     
     // Проверяем гарантированный крит
     if (this.activeEffects.nextCrit) {
       damage = Math.floor(damage * 2.5);
-      this.log(`💥 Гарантированный критический удар!`);
+      isCrit = true;
       this.activeEffects.nextCrit = false;
+      this.log('💥 Гарантированный критический удар!');
     } else {
       // Обычный крит
-      const crit = Math.random() < player.stats.crit;
-      if (crit) {
+      const critChance = player.stats.crit || 0;
+      if (Math.random() < critChance) {
         damage = Math.floor(damage * 2.5);
+        isCrit = true;
       }
     }
     
-    // Применяем усиления от умений
-    const classSkills = this.skills[playerClass];
-    classSkills.forEach(skill => {
-      if (currentTime - skill.lastUsed < skill.cooldown * 1000) {
-        // Умение на перезарядке
-        return;
-      }
-    });
-    
     this.enemy.hp -= damage;
-    spawnDamageText(this.ctx, 280, 90, `-${damage}`);
+    spawnDamageText(this.ctx, 280, 90, `-${damage}`, isCrit);
     
     this.attackPhase = 10;
+    
+    if (isCrit) {
+      screenShake(this.ctx, 5);
+    }
     
     if (this.enemy.hp <= 0) {
       this.defeatEnemy();
     } else {
-      this.log(`⚔️ Вы нанесли ${damage} урона (${this.enemy.hp}/${this.enemyMaxHp})`);
+      this.log(`⚔️ Вы нанесли ${damage} урона`);
     }
   }
 
   useRandomSkill() {
-    if (!this.enemy || this.enemy.hp <= 0) return;
+    if (!this.enemy || this.enemy.hp <= 0 || !this.isBattleActive) return;
     
     const playerClass = player.classId || 'warrior';
-    const availableSkills = this.skills[playerClass];
+    const availableSkills = this.skills[playerClass] || [];
+    if (availableSkills.length === 0) return;
+    
     const currentTime = Date.now();
     
     // Фильтруем умения, которые готовы к использованию
-    const readySkills = availableSkills.filter(skill => 
-      currentTime - skill.lastUsed >= skill.cooldown * 1000
-    );
+    const readySkills = availableSkills.filter(skill => {
+      const timeSinceUse = currentTime - skill.lastUsed;
+      return timeSinceUse >= skill.cooldown * 1000;
+    });
     
     if (readySkills.length === 0) return;
     
-    // Выбираем случайное умение из готовых
+    // Выбираем случайное умение
     const randomSkill = readySkills[Math.floor(Math.random() * readySkills.length)];
+    const baseDamage = player.stats.atk;
     
     // Применяем умение
-    const baseDamage = player.stats.atk;
+    randomSkill.lastUsed = currentTime;
     const enhancedDamage = randomSkill.effect(baseDamage);
     
     // Наносим урон
     this.enemy.hp -= enhancedDamage;
     spawnDamageText(this.ctx, 280, 90, `-${enhancedDamage}`, true);
-    
-    // Обновляем время последнего использования
-    randomSkill.lastUsed = currentTime;
     
     this.log(`✨ Использовано умение: ${randomSkill.name}`);
     this.log(`⚡ Нанесено ${enhancedDamage} урона`);
@@ -309,11 +337,14 @@ class BattleSystem {
     }
     
     // Эффект тряски для умений
-    screenShake(this.ctx, 5);
+    screenShake(this.ctx, 3);
+    
+    // Обновляем UI умений
+    this.updateSkillCooldowns();
   }
 
   autoEnemyAttack() {
-    if (!this.enemy || !this.isBattleActive) return;
+    if (!this.enemy || !this.isBattleActive || player.currentHp <= 0) return;
     
     // Проверяем уклонение
     if (this.activeEffects.playerDodging) {
@@ -346,14 +377,16 @@ class BattleSystem {
     // Обработка яда на враге
     if (this.activeEffects.enemyPoisoned.turns > 0) {
       const poisonDamage = this.activeEffects.enemyPoisoned.damage;
-      this.enemy.hp -= poisonDamage;
-      spawnDamageText(this.ctx, 280, 90, `-${poisonDamage}`, false, '#00ff00');
-      
-      this.activeEffects.enemyPoisoned.turns--;
-      this.log(`☠️ Яд наносит ${poisonDamage} урона врагу`);
-      
-      if (this.enemy.hp <= 0) {
-        this.defeatEnemy();
+      if (this.enemy && this.enemy.hp > 0) {
+        this.enemy.hp -= poisonDamage;
+        spawnDamageText(this.ctx, 280, 90, `-${poisonDamage}`, false);
+        
+        this.activeEffects.enemyPoisoned.turns--;
+        this.log(`☠️ Яд наносит ${poisonDamage} урона врагу`);
+        
+        if (this.enemy.hp <= 0) {
+          this.defeatEnemy();
+        }
       }
     }
   }
@@ -369,6 +402,8 @@ class BattleSystem {
   }
 
   defeatEnemy() {
+    if (!this.isBattleActive) return;
+    
     const goldReward = 10 + Math.floor(this.enemyIndex / 2);
     player.gold += goldReward;
     
@@ -382,13 +417,20 @@ class BattleSystem {
       return;
     }
     
+    // Сбрасываем эффекты для нового врага
+    this.activeEffects.enemyStunned = 0;
+    this.activeEffects.enemyPoisoned = { turns: 0, damage: 0 };
+    
     this.spawnEnemy(this.enemyIndex);
     this.log(`👾 Встречен враг ${this.enemyIndex + 1}/${this.currentLocation.enemies}`);
     
     savePlayer(player);
+    this.updateBattleHUD();
   }
 
   victory() {
+    if (!this.isBattleActive) return;
+    
     const goldReward = 50 + this.currentLocation.level * 20;
     player.gold += goldReward;
     player.level += 1;
@@ -397,31 +439,52 @@ class BattleSystem {
     this.log(`🎉 Получено: ${goldReward} золота и 1 уровень опыта`);
     this.log(`🎮 Уровень повышен: ${player.level}`);
     
+    // Останавливаем битву
     this.stopBattle();
+    
+    // Сохраняем прогресс
     savePlayer(player);
     
-    // Автоматическое возвращение через 5 секунд
-    setTimeout(() => {
-      if (window.sceneManager) {
-        window.sceneManager.showScene('menu');
-      }
-    }, 5000);
-  }
-
-  gameOver() {
-    this.log('❌ Персонаж погиб');
-    this.log('💀 Вы проиграли битву');
-    this.log(`🔄 Возвращаемся в меню...`);
-    
-    this.stopBattle();
-    savePlayer(player);
+    // Обновляем HUD
+    if (window.sceneManager) {
+      window.sceneManager.updateAllDisplays();
+    }
     
     // Автоматическое возвращение через 3 секунды
-    setTimeout(() => {
+    if (this.returnToMenuTimeout) {
+      clearTimeout(this.returnToMenuTimeout);
+    }
+    
+    this.returnToMenuTimeout = setTimeout(() => {
       if (window.sceneManager) {
         window.sceneManager.showScene('menu');
       }
     }, 3000);
+  }
+
+  gameOver() {
+    if (!this.isBattleActive) return;
+    
+    this.log('❌ Персонаж погиб');
+    this.log('💀 Вы проиграли битву');
+    this.log(`🔄 Возвращаемся в меню...`);
+    
+    // Останавливаем битву
+    this.stopBattle();
+    
+    // Сохраняем прогресс
+    savePlayer(player);
+    
+    // Немедленное возвращение в меню
+    if (this.returnToMenuTimeout) {
+      clearTimeout(this.returnToMenuTimeout);
+    }
+    
+    this.returnToMenuTimeout = setTimeout(() => {
+      if (window.sceneManager) {
+        window.sceneManager.showScene('menu');
+      }
+    }, 2000);
   }
 
   flee() {
@@ -437,15 +500,11 @@ class BattleSystem {
 
   spawnEnemy(index) {
     const loc = this.currentLocation;
-    this.enemyMaxHp = Math.floor(loc.enemyHp * Math.pow(loc.hpGrowth, index));
+    this.enemyMaxHp = Math.floor(loc.enemyHp * Math.pow(loc.hpGrowth || 1.2, index));
     this.enemy = {
       hp: this.enemyMaxHp,
-      atk: Math.floor(loc.enemyAtk * Math.pow(loc.atkGrowth, index)),
+      atk: Math.floor(loc.enemyAtk * Math.pow(loc.atkGrowth || 1.1, index)),
     };
-    
-    // Сбрасываем эффекты при появлении нового врага
-    this.activeEffects.enemyStunned = 0;
-    this.activeEffects.enemyPoisoned = { turns: 0, damage: 0 };
     
     console.log(`👾 Новый враг: HP=${this.enemy.hp}, ATK=${this.enemy.atk}`);
   }
@@ -460,13 +519,16 @@ class BattleSystem {
     
     // Сбрасываем таймеры умений
     const playerClass = player.classId || 'warrior';
-    this.skills[playerClass].forEach(skill => {
-      skill.lastUsed = 0;
-    });
+    if (this.skills[playerClass]) {
+      this.skills[playerClass].forEach(skill => {
+        skill.lastUsed = 0;
+      });
+    }
   }
 
   updateBattleHUD() {
-    // Обновляем HUD в битве
+    if (!this.isBattleActive) return;
+    
     const hud = {
       level: document.getElementById('battle-level'),
       gold: document.getElementById('battle-gold'),
@@ -486,30 +548,33 @@ class BattleSystem {
       hud.enemies.textContent = `${this.enemyIndex}/${this.currentLocation.enemies}`;
     }
     
-    // Обновляем кулдауны умений
     this.updateSkillCooldowns();
   }
 
   updateSkillCooldowns() {
-    const playerClass = player.classId || 'warrior';
-    const skillsContainer = document.querySelector('.skills-container');
-    
+    const skillsContainer = document.getElementById('skills-container');
     if (!skillsContainer) return;
+    
+    const playerClass = player.classId || 'warrior';
+    const availableSkills = this.skills[playerClass] || [];
     
     skillsContainer.innerHTML = '';
     
-    this.skills[playerClass].forEach(skill => {
+    availableSkills.forEach(skill => {
       const currentTime = Date.now();
       const timeSinceUse = currentTime - skill.lastUsed;
       const cooldownRemaining = Math.max(0, skill.cooldown * 1000 - timeSinceUse) / 1000;
+      const isReady = cooldownRemaining <= 0;
       
       const skillEl = document.createElement('div');
       skillEl.className = 'skill-item';
       skillEl.innerHTML = `
         <div class="skill-name">${skill.name}</div>
-        <div class="skill-cooldown">${cooldownRemaining > 0 ? cooldownRemaining.toFixed(1) : 'Готов'}</div>
+        <div class="skill-cooldown ${isReady ? 'ready' : 'cooldown'}">
+          ${isReady ? 'Готов' : cooldownRemaining.toFixed(1)}
+        </div>
         <div class="skill-bar">
-          <div class="skill-bar-fill" style="width: ${100 - (cooldownRemaining / skill.cooldown) * 100}%"></div>
+          <div class="skill-bar-fill" style="width: ${isReady ? 100 : 100 - (cooldownRemaining / skill.cooldown) * 100}%"></div>
         </div>
       `;
       
@@ -518,7 +583,7 @@ class BattleSystem {
   }
 
   animate() {
-    if (!this.isBattleActive) {
+    if (!this.isBattleActive || !this.ctx) {
       if (this.animationId) {
         cancelAnimationFrame(this.animationId);
         this.animationId = null;
@@ -555,12 +620,17 @@ class BattleSystem {
     
     updateDamageTexts(this.ctx);
     
+    // Сохраняем ID анимации для отмены
     this.animationId = requestAnimationFrame(() => this.animate());
   }
 
   stopBattle() {
-    this.isBattleActive = false;
+    console.log('🛑 Останавливаем битву...');
     
+    this.isBattleActive = false;
+    this.isPaused = false;
+    
+    // Очищаем все интервалы
     if (this.gameInterval) {
       clearInterval(this.gameInterval);
       this.gameInterval = null;
@@ -571,36 +641,54 @@ class BattleSystem {
       this.skillInterval = null;
     }
     
+    // Останавливаем анимацию
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;
     }
     
-    console.log('⏹️ Битва остановлена');
+    // Очищаем таймаут возврата в меню
+    if (this.returnToMenuTimeout) {
+      clearTimeout(this.returnToMenuTimeout);
+      this.returnToMenuTimeout = null;
+    }
+    
+    // Сбрасываем состояние
+    this.enemy = null;
+    this.activeEffects = {
+      enemyStunned: 0,
+      enemyPoisoned: { turns: 0, damage: 0 },
+      playerDodging: false,
+      nextCrit: false
+    };
+    
+    console.log('✅ Битва остановлена');
   }
 
   log(message) {
-    if (this.logEl) {
-      const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-      this.logEl.innerHTML += `<div><small>[${timestamp}]</small> ${message}</div>`;
-      
-      // Ограничиваем количество сообщений
-      const messages = this.logEl.querySelectorAll('div');
-      if (messages.length > 20) {
-        messages[0].remove();
-      }
-      
-      this.logEl.scrollTop = this.logEl.scrollHeight;
+    if (!this.logEl) return;
+    
+    const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second: '2-digit'});
+    this.logEl.innerHTML += `<div><small>[${timestamp}]</small> ${message}</div>`;
+    
+    // Ограничиваем количество сообщений
+    const messages = this.logEl.querySelectorAll('div');
+    if (messages.length > 15) {
+      messages[0].remove();
     }
+    
+    this.logEl.scrollTop = this.logEl.scrollHeight;
     console.log(message);
   }
 }
 
-// Создаём глобальный экземпляр
+// Глобальный экземпляр
 let battleSystem = null;
 
 // Экспортируемая функция для начала битвы
 export function startBattle(locationId) {
+  console.log('🎮 Запуск битвы для локации:', locationId);
+  
   if (!battleSystem) {
     battleSystem = new BattleSystem();
   }
@@ -608,12 +696,17 @@ export function startBattle(locationId) {
   // Переключаемся на сцену битвы
   if (window.sceneManager) {
     window.sceneManager.showScene('battle');
+    
+    // Даем время на отрисовку сцены
+    setTimeout(() => {
+      if (battleSystem.startBattle(locationId)) {
+        console.log('✅ Битва успешно начата');
+      } else {
+        console.error('❌ Не удалось начать битву');
+        window.sceneManager.showScene('menu');
+      }
+    }, 100);
   }
-  
-  // Начинаем битву через небольшую задержку для анимации
-  setTimeout(() => {
-    battleSystem.startBattle(locationId);
-  }, 300);
 }
 
 // Экспортируем для отладки
