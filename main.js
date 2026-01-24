@@ -95,17 +95,31 @@ class SceneManager {
     document.getElementById('menu-hp-bar').style.width = `${hpPercent}%`;
   }
 
-  updateBattle() {
-    if (!player) return;
-    
-    document.getElementById('battle-level').textContent = player.level;
-    document.getElementById('battle-gold').textContent = player.gold;
-    document.getElementById('battle-hp').textContent = `${player.currentHp}/${player.maxHp}`;
-    document.getElementById('battle-atk').textContent = player.stats.atk;
-    document.getElementById('battle-def').textContent = player.stats.def;
-    
-    this.updateLocationList();
+updateBattle() {
+  if (!player) return;
+  
+  document.getElementById('battle-level').textContent = player.level;
+  document.getElementById('battle-gold').textContent = player.gold;
+  document.getElementById('battle-hp').textContent = `${player.currentHp}/${player.maxHp}`;
+  document.getElementById('battle-atk').textContent = player.stats.atk;
+  document.getElementById('battle-def').textContent = player.stats.def;
+  
+  // Обновляем информацию о классе
+  const classInfo = document.createElement('div');
+  classInfo.className = 'player-class-info';
+  classInfo.innerHTML = `Класс: ${player.classId === 'warrior' ? '⚔️ Воин' : '🗡️ Ассасин'}`;
+  
+  const battleHUD = document.querySelector('.battle-hud');
+  if (battleHUD) {
+    const existingClassInfo = battleHUD.querySelector('.player-class-info');
+    if (existingClassInfo) {
+      existingClassInfo.remove();
+    }
+    battleHUD.appendChild(classInfo);
   }
+  
+  this.updateLocationList();
+}
 
   updateLocationList() {
     const locationList = document.getElementById('location-list');
