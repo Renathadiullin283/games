@@ -1,4 +1,4 @@
-// render.js
+// render.js (дополнение)
 let shakeTime = 0;
 let damageTexts = [];
 
@@ -92,7 +92,7 @@ export function drawStickman(ctx, x, y, color = "#000") {
   ctx.stroke();
   
   // Эффекты для игрока
-  if (color === "#4cd137") {
+  if (color === "#4cd137" || color === "#9b59b6") {
     // Свечение для игрока
     ctx.shadowColor = color;
     ctx.shadowBlur = 10;
@@ -145,4 +145,43 @@ export function updateDamageTexts(ctx) {
     
     t.life--;
   });
+}
+
+// Новая функция для рисования элементов локации
+export function drawLocationElement(ctx, type, x, y) {
+  if (!ctx) return;
+  
+  ctx.save();
+  
+  switch(type) {
+    case 'tree':
+      // Дерево
+      ctx.fillStyle = '#8B4513';
+      ctx.fillRect(x - 5, y - 30, 10, 30);
+      ctx.fillStyle = '#2ecc71';
+      ctx.beginPath();
+      ctx.arc(x, y - 40, 20, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+      
+    case 'rock':
+      // Камень
+      ctx.fillStyle = '#7f8c8d';
+      ctx.beginPath();
+      ctx.arc(x, y, 15, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+      
+    case 'bush':
+      // Куст
+      ctx.fillStyle = '#27ae60';
+      ctx.beginPath();
+      ctx.arc(x, y, 12, 0, Math.PI * 2);
+      ctx.arc(x + 10, y, 10, 0, Math.PI * 2);
+      ctx.arc(x - 10, y, 10, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+  }
+  
+  ctx.restore();
 }
