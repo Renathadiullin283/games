@@ -1,15 +1,20 @@
 import { player, resetPlayerHp } from "./game.js";
 import { LOCATIONS } from "./data.js";
-import { clear, drawStickman, drawHpBar } from "./render.js";
+import {
+  clear,
+  drawStickman,
+  drawHpBar,
+  spawnDamageText,
+  updateDamageTexts,
+  screenShake
+} from "./render.js";
 
 const logEl = document.getElementById("log");
 
-function log(text) {
-  logEl.textContent += text + "\n";
-}
-
 let enemy = null;
 let enemyMaxHp = 0;
+let playerOffset = 0;
+let attackPhase = 0;
 
 export function startRun(locationId) {
   logEl.textContent = "";
@@ -19,8 +24,6 @@ export function startRun(locationId) {
 
   let enemyIndex = 0;
   spawnEnemy(enemyIndex, location);
-
-  log(`Локация: ${location.name}`);
 
   const interval = setInterval(() => {
     if (player.currentHp <= 0) {
@@ -35,14 +38,16 @@ export function startRun(locationId) {
       return;
     }
 
-    // === Игрок атакует ===
-    let damage = player.stats.atk;
-    if (Math.random() < player.stats.crit) {
-      damage *= 2;
-      log("🔥 КРИТ!");
-    }
+    // === Атака игрока ===
+    let crit = Math.random() < player.stats.crit;
+    let damage = crit ? player.stats.atk * 2 : player.stats.atk;
 
     enemy.hp -= damage;
+    spawnDamageText(280, 90, `-${damage}`, crit);
+
+    if (crit) screenShake(8);
+
+    attackPhase = 10;
 
     if (enemy.hp <= 0) {
       enemyIndex++;
@@ -55,14 +60,14 @@ export function startRun(locationId) {
       return;
     }
 
-    // === Враг атакует ===
+    // === Атака врага ===
     const incoming = Math.max(enemy.atk - player.stats.def, 1);
     player.currentHp -= incoming;
+    spawnDamageText(120, 90, `-${incoming}`);
 
-    render();
   }, 1000);
 
-  render();
+  animate();
 }
 
 function spawnEnemy(index, location) {
@@ -71,17 +76,32 @@ function spawnEnemy(index, location) {
     hp: enemyMaxHp,
     atk: Math.floor(location.enemyAtk * Math.pow(location.atkGrowth, index)),
   };
-  render();
 }
 
-function render() {
+function animate() {
   clear();
 
+  // === Анимация удара ===
+  if (attackPhase > 0) {
+    playerOffset = attackPhase > 5 ? 5 : -5;
+    attackPhase--;
+  } else {
+    playerOffset = 0;
+  }
+
   // player
-  drawStickman(100, 120, "#000");
+  drawStickman(100 + playerOffset, 120, "#000");
   drawHpBar(70, 20, 60, 6, player.currentHp, player.maxHp);
 
   // enemy
   drawStickman(300, 120, "#b00");
   drawHpBar(270, 20, 60, 6, enemy.hp, enemyMaxHp);
+
+  updateDamageTexts();
+
+  requestAnimationFrame(animate);
+}
+
+function log(text) {
+  logEl.textContent += text + "\n";
 }
