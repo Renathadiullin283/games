@@ -148,7 +148,16 @@ body {
   background: #3c5aa8;
   transform: translateY(-2px);
 }
-
+.player-class-info {
+  grid-column: span 3;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 5px 10px;
+  border-radius: 5px;
+  margin-top: 5px;
+  font-size: 0.9em;
+  text-align: center;
+  color: #3498db;
+}
 /* Главное меню */
 .menu-content {
   flex: 1;
