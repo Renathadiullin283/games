@@ -35,6 +35,10 @@ class BattleSystem {
     this.locationProgress = 0; // Прогресс прохождения локации (0-100%)
     this.nextEnemyTime = 0;
     this.enemySpawnTimer = null;
+    this.locationSelection = document.getElementById('location-selection');
+    this.battleGame = document.getElementById('battle-game');
+    this.locationList = document.getElementById('location-list');
+    
     
     // Настройки путешествия
     this.travelSettings = {
@@ -120,6 +124,7 @@ class BattleSystem {
     this.init();
   }
 
+
   init() {
     if (!this.canvas) {
       console.error('Canvas не найден!');
@@ -129,8 +134,88 @@ class BattleSystem {
     this.canvas.width = 400;
     this.canvas.height = 200;
     
-    this.removeBattleButtons();
+    // Показываем выбор локаций при инициализации
+    this.showLocationSelection();
+    
     this.addTravelUI();
+  }
+            showLocationSelection() {
+    // Останавливаем текущую битву, если есть
+    this.stopBattle();
+    
+    // Показываем выбор локаций, скрываем игровой интерфейс
+    if (this.locationSelection) {
+      this.locationSelection.style.display = 'block';
+    }
+    if (this.battleGame) {
+      this.battleGame.style.display = 'none';
+    }
+    
+    // Заполняем список локаций
+    this.updateLocationList();
+  }
+
+  showBattleInterface() {
+    // Показываем игровой интерфейс, скрываем выбор локаций
+    if (this.locationSelection) {
+      this.locationSelection.style.display = 'none';
+    }
+    if (this.battleGame) {
+      this.battleGame.style.display = 'block';
+    }
+  }
+
+  updateLocationList() {
+    if (!this.locationList) return;
+    
+    this.locationList.innerHTML = '';
+    
+    // Сортируем локации по уровню
+    const sortedLocations = Object.entries(LOCATIONS).sort(([, a], [, b]) => a.level - b.level);
+    
+    for (const [locId, loc] of sortedLocations) {
+      const btn = document.createElement('div');
+      btn.className = 'location-btn';
+      
+      // Проверяем доступность локации
+      const isAvailable = player.level >= loc.level;
+      
+      if (!isAvailable) {
+        btn.classList.add('locked');
+        btn.style.opacity = '0.6';
+        btn.style.cursor = 'not-allowed';
+      }
+      
+      btn.innerHTML = `
+        <div class="location-icon">${this.getLocationIcon(loc.name)}</div>
+        <div class="location-details">
+          <strong>${loc.name}</strong>
+          <div class="location-stats">
+            <span>📊 Ур. ${loc.level}</span>
+            <span>👾 Врагов: ${loc.enemies}</span>
+            <span>❤️ HP: ${loc.enemyHp}</span>
+            <span>⚔️ ATK: ${loc.enemyAtk}</span>
+          </div>
+          ${!isAvailable ? '<div class="location-lock">🔒 Требуется уровень ' + loc.level + '</div>' : ''}
+        </div>
+      `;
+      
+      if (isAvailable) {
+        btn.onclick = () => {
+          console.log(`🎮 Выбрана локация: ${loc.name}`);
+          this.startBattle(locId);
+        };
+      }
+      
+      this.locationList.appendChild(btn);
+    }
+  }
+
+  getLocationIcon(locationName) {
+    if (locationName.includes('Завод')) return '🏭';
+    if (locationName.includes('Лес')) return '🌲';
+    if (locationName.includes('Подземелье')) return '🏰';
+    return '📍';
   }
 
   removeBattleButtons() {
@@ -197,6 +282,7 @@ class BattleSystem {
     
     // Сбрасываем эффекты
     this.resetEffects();
+            this.showBattleInterface();
     
     resetPlayerHp();
     
