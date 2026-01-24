@@ -2,7 +2,16 @@
 import { player, resetPlayerHp } from './game.js';
 import { LOCATIONS } from './data.js';
 import { savePlayer } from './telegramSave.js';
-import { clear, drawStickman, drawHpBar, spawnDamageText, updateDamageTexts, screenShake, drawBackground } from './render.js';
+import { 
+          clear, 
+          drawStickman, 
+          drawHpBar, 
+          spawnDamageText, 
+          updateDamageTexts, 
+          screenShake, 
+          drawBackground,      // Добавьте эту строку
+          drawLocationElement  // Или эту, если используете
+        } from "./render.js";
 
 class BattleSystem {
   constructor() {
