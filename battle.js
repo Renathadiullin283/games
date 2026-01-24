@@ -829,48 +829,63 @@ class BattleSystem {
     this.animationId = requestAnimationFrame(() => this.animate());
   }
 
-  drawLocationBackground() {
-    const ctx = this.ctx;
-    const canvas = this.canvas;
-    
-    // Фон неба
-    ctx.fillStyle = '#1a1a2e';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Звезды (для ночи)
-    if (this.currentLocation?.name.includes('Лес') || this.currentLocation?.name.includes('Подземелье')) {
-      ctx.fillStyle = '#fff';
-      for (let i = 0; i < 20; i++) {
-        const x = (i * 37 + this.travelAnimation.backgroundOffset) % canvas.width;
-        const y = (i * 19) % 100 + 20;
-        ctx.beginPath();
-        ctx.arc(x, y, 1, 0, Math.PI * 2);
-        ctx.fill();
-      }
+// Замените старый метод drawLocationBackground на этот:
+drawLocationBackground() {
+  const ctx = this.ctx;
+  const canvas = this.canvas;
+  
+  // Определяем тип фона в зависимости от локации
+  let backgroundType = 'default';
+  if (this.currentLocation) {
+    if (this.currentLocation.name.includes('Завод')) {
+      backgroundType = 'factory';
+    } else if (this.currentLocation.name.includes('Лес')) {
+      backgroundType = 'forest';
+    } else if (this.currentLocation.name.includes('Подземелье')) {
+      backgroundType = 'dungeon';
     }
-    
-    // Земля
-    ctx.fillStyle = '#2d3436';
-    ctx.fillRect(0, 150, canvas.width, 50);
-    
-    // Дорожка
-    ctx.fillStyle = '#636e72';
-    ctx.fillRect(0, 155, canvas.width, 5);
-    
-    // Прогресс бар
-    const progressWidth = (canvas.width - 40) * (this.locationProgress / 100);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-    ctx.fillRect(20, 10, canvas.width - 40, 8);
-    ctx.fillStyle = this.locationProgress >= 100 ? '#00b894' : '#3498db';
-    ctx.fillRect(20, 10, progressWidth, 8);
-    
-    // Текст прогресса
-    ctx.fillStyle = '#fff';
-    ctx.font = '10px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText(`${Math.round(this.locationProgress)}%`, canvas.width / 2, 18);
   }
-
+  
+  // Рисуем фон с учетом смещения для анимации движения
+  drawBackground(ctx, backgroundType, this.travelAnimation.backgroundOffset);
+  
+  // Прогресс бар локации поверх фона
+  const progressWidth = (canvas.width - 40) * (this.locationProgress / 100);
+  
+  // Фон прогресс бара
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+  ctx.fillRect(20, 10, canvas.width - 40, 12);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+  ctx.fillRect(20, 10, canvas.width - 40, 12);
+  
+  // Заполненная часть прогресс бара
+  if (this.locationProgress >= 100) {
+    // Полный прогресс - зеленый
+    const gradient = ctx.createLinearGradient(20, 10, 20 + progressWidth, 10);
+    gradient.addColorStop(0, '#00b894');
+    gradient.addColorStop(1, '#00cec9');
+    ctx.fillStyle = gradient;
+  } else {
+    // Обычный прогресс - синий
+    const gradient = ctx.createLinearGradient(20, 10, 20 + progressWidth, 10);
+    gradient.addColorStop(0, '#3498db');
+    gradient.addColorStop(1, '#2980b9');
+    ctx.fillStyle = gradient;
+  }
+  ctx.fillRect(20, 10, progressWidth, 12);
+  
+  // Текст прогресса
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 10px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(`${Math.round(this.locationProgress)}%`, canvas.width / 2, 16);
+  
+  // Рамка прогресс бара
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(20, 10, canvas.width - 40, 12);
+}
   drawTravelScene() {
     const ctx = this.ctx;
     const canvas = this.canvas;
