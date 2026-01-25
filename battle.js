@@ -949,20 +949,33 @@ drawLocationBackground() {
   const ctx = this.ctx;
   const canvas = this.canvas;
   
+  // Очищаем canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
   // Определяем тип фона
-  let backgroundType = 'default';
+  let backgroundColor = '#1a1a2e';
+  let groundColor = '#2d3436';
+  
   if (this.currentLocation) {
     if (this.currentLocation.name.includes('Завод')) {
-      backgroundType = 'factory';
+      backgroundColor = '#2c3e50';
+      groundColor = '#7f8c8d';
     } else if (this.currentLocation.name.includes('Лес')) {
-      backgroundType = 'forest';
+      backgroundColor = '#1a5276';
+      groundColor = '#784212';
     } else if (this.currentLocation.name.includes('Подземелье')) {
-      backgroundType = 'dungeon';
+      backgroundColor = '#17202a';
+      groundColor = '#424949';
     }
   }
   
-  // Рисуем фон с увеличенной скоростью смещения
-  drawBackground(ctx, backgroundType, this.travelAnimation.backgroundOffset);
+  // Рисуем фон
+  ctx.fillStyle = backgroundColor;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Рисуем землю
+  ctx.fillStyle = groundColor;
+  ctx.fillRect(0, 150, canvas.width, 50);
   
   // Прогресс бар
   const progressWidth = (canvas.width - 40) * (this.locationProgress / 100);
