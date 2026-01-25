@@ -265,7 +265,16 @@ addTravelUI() {
   battleControls.appendChild(pauseBtn);
   battleControls.appendChild(speedBtn);
 }
-
+addSkillUI() {
+  const skillsContainer = document.getElementById('skills-container');
+  if (!skillsContainer) return;
+  
+  // Показываем контейнер только в бою
+  skillsContainer.style.display = this.isInCombat ? 'block' : 'none';
+  
+  // Обновляем умения
+  this.updateSkillCooldowns();
+}
 returnToLocationSelection() {
   if (this.isBattleActive) {
     if (confirm('Вы уверены, что хотите прервать путешествие и вернуться к выбору локаций?')) {
