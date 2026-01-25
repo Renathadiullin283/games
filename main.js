@@ -23,6 +23,9 @@ class SceneManager {
     this.scenes = {};
     this.inventorySystem = null;
     this.shopSystem = null;
+    this.initializeNotifications();
+    this.initializeDailyRewards();
+    this.initializeMobileMenu();
     this.init();
   }
 
@@ -691,7 +694,41 @@ class SceneManager {
     console.log('✅ Обработчики событий инициализированы');
   }
 }
+initializeNotifications() {
+  window.showNotification = (title, message, type = 'info', duration = 5000) => {
+    const container = document.getElementById('notifications');
+    if (!container) return;
+    
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `
+      <div class="notification-icon">${this.getNotificationIcon(type)}</div>
+      <div class="notification-content">
+        <div class="notification-title">${title}</div>
+        <div class="notification-message">${message}</div>
+      </div>
+    `;
+    
+    container.appendChild(notification);
+    
+    // Автоудаление
+    setTimeout(() => {
+      notification.style.opacity = '0';
+      notification.style.transform = 'translateX(100%)';
+      setTimeout(() => notification.remove(), 300);
+    }, duration);
+  };
+}
 
+getNotificationIcon(type) {
+  const icons = {
+    success: '✅',
+    error: '❌',
+    warning: '⚠️',
+    info: 'ℹ️'
+  };
+  return icons[type] || 'ℹ️';
+}
 // Инициализация Telegram
 function initTelegram() {
   if (window.Telegram?.WebApp) {
