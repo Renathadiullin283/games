@@ -22,7 +22,7 @@ class SceneManager {
     this.currentScene = 'menu';
     this.scenes = {};
     this.inventorySystem = null;
-    this.shopSystem = null;
+    this.System = null;
     this.initializeNotifications();
     this.initializeDailyRewards();
     this.initializeMobileMenu();
@@ -835,3 +835,16 @@ document.addEventListener('DOMContentLoaded', () => {
   
   console.log('🎮 Игра запущена!');
 });
+// В конце main.js добавьте:
+console.log('🛒 Магазин готов! Категории:', 
+  this.shopSystem ? this.shopSystem.getCategories() : 'не инициализирован');
+
+// Для быстрого теста в консоли браузера можно использовать:
+window.testShop = () => {
+  if (window.sceneManager && window.sceneManager.shopSystem) {
+    console.log('Магазин работает!');
+    console.log('Товары в оружии:', 
+      window.sceneManager.shopSystem.getCategoryItems('weapons'));
+    console.log('Баланс игрока:', player.gold);
+  }
+};
