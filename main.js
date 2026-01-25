@@ -29,21 +29,24 @@ class SceneManager {
     this.init();
   }
 
-  async init() {
-    console.log('🚀 Инициализация игры...');
-    // Сначала скрываем прелоадер
-    this.hidePreloader();
-    // Инициализируем все сцены
-    this.scenes = {
-      menu: document.getElementById('scene-menu'),
-      battle: document.getElementById('scene-battle'),
-      inventory: document.getElementById('scene-inventory'),
-      shop: document.getElementById('scene-shop'),
-      skills: document.getElementById('scene-skills'),
-      options: document.getElementById('scene-options')
-    };
+async init() {
+  console.log('🚀 Инициализация игры...');
+  
+  // Сначала скрываем прелоадер
+  this.hidePreloader();
+  
+  // Инициализируем все сцены
+  this.scenes = {
+    menu: document.getElementById('scene-menu'),
+    battle: document.getElementById('scene-battle'),
+    inventory: document.getElementById('scene-inventory'),
+    shop: document.getElementById('scene-shop'),
+    skills: document.getElementById('scene-skills'),
+    options: document.getElementById('scene-options')
+  };
 
-    // Ждём загрузку игрока
+  // Ждём загрузку игрока
+  try {
     await playerReady;
     console.log('✅ Игрок загружен:', player);
     
@@ -67,6 +70,18 @@ class SceneManager {
     this.showError('Ошибка загрузки игры. Пожалуйста, обновите страницу.');
   }
 }
+
+// Добавляем метод для скрытия прелоадера
+hidePreloader() {
+  const preloader = document.getElementById('preloader');
+  if (preloader) {
+    preloader.style.opacity = '0';
+    setTimeout(() => {
+      preloader.style.display = 'none';
+    }, 500);
+  }
+}
+
 // Добавляем метод для показа ошибок
 showError(message) {
   const errorDiv = document.createElement('div');
