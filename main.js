@@ -690,11 +690,7 @@ class SceneManager {
         savePlayer(player);
       }
     });
-
-    console.log('✅ Обработчики событий инициализированы');
-  }
-}
-initializeNotifications() {
+    initializeNotifications() {
   window.showNotification = (title, message, type = 'info', duration = 5000) => {
     const container = document.getElementById('notifications');
     if (!container) return;
@@ -729,6 +725,10 @@ getNotificationIcon(type) {
   };
   return icons[type] || 'ℹ️';
 }
+    console.log('✅ Обработчики событий инициализированы');
+  }
+}
+
 // Инициализация Telegram
 function initTelegram() {
   if (window.Telegram?.WebApp) {
