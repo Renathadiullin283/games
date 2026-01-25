@@ -526,7 +526,7 @@ export function generateRandomItem(minLevel = 1, maxLevel = 10) {
   
   const type = itemTypes[Math.floor(Math.random() * itemTypes.length)];
   const rarity = rarities[Math.floor(Math.random() * rarities.length)];
-  const level = Math.floor(Math.random() * (maxLevel - minLevel + 1)) + minLevel;
+  const level = Math.floor((minLevel + maxLevel) / 2);
   
   let item = {
     id: `random_${type}_${Date.now()}`,
