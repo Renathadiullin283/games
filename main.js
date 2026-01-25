@@ -64,6 +64,9 @@ async init() {
     }
     
     console.log('🎮 Игра готова!');
+    // Тестируем магазин
+    this.testShop();
+    
   } catch (error) {
     console.error('❌ Ошибка инициализации игры:', error);
     // Показываем сообщение об ошибке
@@ -571,8 +574,11 @@ showError(message) {
     }
   }
 
-  updateShop() {
-    if (!player || !this.shopSystem) return;
+    updateShop() {
+    if (!player || !this.shopSystem) {
+      console.warn('⚠️ Магазин не готов:', { player: !!player, shopSystem: !!this.shopSystem });
+      return;
+    }
     
     // Обновляем баланс
     const shopGold = document.getElementById('shop-gold');
@@ -586,15 +592,43 @@ showError(message) {
       shopGems.textContent = player.gems || 0;
     }
     
-    // Инициализируем вкладки магазина
-    initializeShopTabs(this.shopSystem, player);
+    // Инициализируем вкладки магазина (если еще не инициализированы)
+    if (typeof initializeShopTabs === 'function') {
+      initializeShopTabs(this.shopSystem, player);
+    }
     
     // Инициализируем товары
-    initializeShopUI(this.shopSystem, player);
+    if (typeof initializeShopUI === 'function') {
+      initializeShopUI(this.shopSystem, player);
+    }
     
     // Обновляем информацию об обновлении
-    updateRefreshInfo(this.shopSystem, player);
+    if (typeof updateRefreshInfo === 'function') {
+      updateRefreshInfo(this.shopSystem, player);
+    }
   }
+
+  // Метод для тестирования магазина
+  testShop() {
+    console.log('🧪 Тестирование магазина...');
+    
+    if (this.shopSystem) {
+      console.log('✅ Магазин загружен');
+      console.log('📊 Категории:', this.shopSystem.getCategories());
+      console.log('💰 Баланс игрока:', player.gold);
+      
+      // Показываем доступные товары в оружии
+      const weapons = this.shopSystem.getCategoryItems('weapons');
+      console.log(`⚔️ Товаров в оружии: ${weapons.length}`);
+      
+      weapons.forEach((item, index) => {
+        console.log(`  ${index + 1}. ${item.name} - ${item.shopPrice} золота`);
+      });
+    } else {
+      console.error('❌ Магазин не инициализирован');
+    }
+  }
+
 
   updateSkills() {
     // TODO: Добавить логику навыков
