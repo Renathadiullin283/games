@@ -97,8 +97,32 @@ export class ShopSystem {
     );
 
     // Генерируем случайные товары для специального раздела
+  if (this.player) {
+    const playerLevel = this.player.level;
+    
     for (let i = 0; i < 4; i++) {
-      const randomItem = generateRandomItem(1, player.level);
+      // Генерируем предмет +/- 2 уровня от игрока
+      const minLevel = Math.max(1, playerLevel - 2);
+      const maxLevel = playerLevel + 2;
+      
+      const randomItem = generateRandomItem(minLevel, maxLevel);
+      
+      // Добавляем уникальный ID для магазина
+      const shopItem = {
+        ...randomItem,
+        id: `shop_special_${Date.now()}_${i}`,
+        shopPrice: Math.floor(randomItem.value * (1.5 + Math.random() * 0.5)), // 1.5-2x цены
+        stock: 1,
+        isSpecial: true
+      };
+      
+      items.special.push(shopItem);
+    }
+  } else {
+    // Если игрок еще не загружен, используем базовые предметы
+    console.warn('Player not loaded, using default special items');
+    for (let i = 0; i < 3; i++) {
+      const randomItem = generateRandomItem(1, 5);
       items.special.push({
         ...randomItem,
         shopPrice: Math.floor(randomItem.value * 1.5),
@@ -106,9 +130,10 @@ export class ShopSystem {
         isSpecial: true
       });
     }
-
-    return items;
   }
+
+  return items;
+}
 
   // Обновление товаров в магазине
   refreshShop() {
