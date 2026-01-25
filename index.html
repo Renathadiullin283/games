@@ -8,8 +8,24 @@
 </head>
 <body>
 
+  <div id="preloader" class="preloader">
+  <div class="preloader-content">
+    <div class="preloader-logo">⚔️ Stickman RPG</div>
+    <div class="preloader-progress">
+      <div class="progress-bar">
+        <div class="progress-fill" id="preloader-progress"></div>
+      </div>
+      <div class="progress-text" id="preloader-text">Загрузка...</div>
+    </div>
+    <div class="preloader-hint" id="preloader-hint">
+      💡 Совет: Используйте зелья во время боя
+    </div>
+  </div>
+</div>  
+
 <!-- Все сцены скрыты по умолчанию, показывается только активная -->
 <div id="scene-container">
+
   
   <!-- Сцена 1: Главное меню -->
   <div id="scene-menu" class="scene active">
@@ -55,9 +71,12 @@
       
       <div class="menu-buttons">
         <button class="menu-btn" data-scene="battle">⚔️ Локации</button>
+        <button class="menu-btn" id="btn-quick-battle">⚡ Быстрое путешествие</button>
         <button class="menu-btn" data-scene="inventory">🎒 Инвентарь</button>
         <button class="menu-btn" data-scene="shop">🛒 Магазин</button>
         <button class="menu-btn" data-scene="skills">✨ Навыки</button>
+        <button class="menu-btn" id="btn-daily-rewards">🎁 Ежедневные награды</button>
+        <button class="menu-btn" data-scene="achievements">🏆 Достижения</button>
         <button class="menu-btn" data-scene="options">⚙️ Настройки</button>
       </div>
     </div>
@@ -66,6 +85,32 @@
       <button id="btn-debug" class="btn-small">Отладка</button>
     </div>
   </div>
+<!-- Новая сцена -->
+<div id="scene-leaderboard" class="scene">
+  <header class="scene-header">
+    <button class="btn-back" data-scene="menu">← Назад</button>
+    <span>🏆 Топ игроков</span>
+  </header>
+  
+  <div class="leaderboard-content">
+    <div class="leaderboard-tabs">
+      <button class="leaderboard-tab active" data-board="level">📊 По уровню</button>
+      <button class="leaderboard-tab" data-board="gold">💰 По золоту</button>
+      <button class="leaderboard-tab" data-board="achievements">🏆 По достижениям</button>
+    </div>
+    
+    <div class="leaderboard-list" id="leaderboard-list">
+      <div class="loading">Загрузка рейтинга...</div>
+    </div>
+    
+    <div class="player-position">
+      <h3>🎯 Ваша позиция</h3>
+      <div id="player-rank" class="rank-info">
+        <!-- Будет заполняться через JS -->
+      </div>
+    </div>
+  </div>
+</div>
   
   <!-- Сцена 2: Выбор локации и битва -->
 <!-- В сцене битвы замените на этот код -->
@@ -121,6 +166,12 @@
         <div class="travel-info">
           <p>🚶 Ваш персонаж путешествует по локации. Враги появляются каждые 5-10 секунд.</p>
           <p>⚡ Используйте ускорение для быстрого прохождения.</p>
+        </div>
+      </div>
+      <div class="battle-mini-map">
+        <div class="map-title">🗺️ Карта локации</div>
+        <div id="mini-map" class="mini-map">
+          <!-- Будет заполняться через JS -->
         </div>
       </div>
       
@@ -279,7 +330,68 @@
       </div>
     </div>
   </div>
+ <!-- Сцена 7: Достижения -->
+  <div id="scene-achievements" class="scene">
+  <header class="scene-header">
+    <button class="btn-back" data-scene="menu">← Назад</button>
+    <span>🏆 Достижения</span>
+  </header>
   
+  <div class="achievements-content">
+    <div class="achievements-stats">
+      <div class="stat-item">
+        <span class="stat-label">Получено:</span>
+        <span class="stat-value" id="achievements-unlocked">0/50</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Процент:</span>
+        <span class="stat-value" id="achievements-percent">0%</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Очки:</span>
+        <span class="stat-value" id="achievements-points">0</span>
+      </div>
+    </div>
+    
+    <div class="achievements-list" id="achievements-list">
+      <!-- Достижения будут добавляться через JS -->
+    </div>
+  </div>
+</div>
+  <!-- Сцена 8: Дейлики -->
+  <div id="daily-rewards" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>🎁 Ежедневные награды</h2>
+      <button class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="daily-streak">
+        <div class="streak-info">
+          <span class="streak-label">Серия дней:</span>
+          <span class="streak-value" id="daily-streak">0</span>
+        </div>
+        <div class="streak-info">
+          <span class="streak-label">Следующая награда:</span>
+          <span class="streak-value" id="next-reward-time">24:00:00</span>
+        </div>
+      </div>
+      
+      <div class="rewards-calendar">
+        <div class="calendar-header">
+          <div class="day-label">День</div>
+          <div class="reward-label">Награда</div>
+          <div class="status-label">Статус</div>
+        </div>
+        <div id="rewards-list" class="rewards-list">
+          <!-- Награды будут добавляться через JS -->
+        </div>
+      </div>
+      
+      <button id="btn-claim-daily" class="btn-claim">🎯 Забрать сегодняшнюю награду</button>
+    </div>
+  </div>
+</div>
   <!-- Сцена 6: Настройки -->
   <div id="scene-options" class="scene">
     <header class="scene-header">
@@ -327,5 +439,25 @@
 </div>
 
 <script type="module" src="main.js"></script>
+      <div id="notifications" class="notifications-container"></div>  
+  <div id="mobile-menu" class="mobile-menu">
+  <button class="mobile-menu-btn" data-scene="menu">🏠</button>
+  <button class="mobile-menu-btn" data-scene="battle">⚔️</button>
+  <button class="mobile-menu-btn" data-scene="inventory">🎒</button>
+  <button class="mobile-menu-btn" data-scene="shop">🛒</button>
+  <button class="mobile-menu-btn" id="mobile-menu-toggle">≡</button>
+</div>
+
+<div id="mobile-menu-expanded" class="mobile-menu-expanded">
+  <div class="mobile-menu-header">
+    <button class="mobile-menu-close">&times;</button>
+  </div>
+  <div class="mobile-menu-items">
+    <button class="mobile-menu-item" data-scene="skills">✨ Навыки</button>
+    <button class="mobile-menu-item" data-scene="achievements">🏆 Достижения</button>
+    <button class="mobile-menu-item" data-scene="leaderboard">📊 Топ</button>
+    <button class="mobile-menu-item" data-scene="options">⚙️ Настройки</button>
+  </div>
+</div>
 </body>
 </html>
