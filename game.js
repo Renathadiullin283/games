@@ -9,25 +9,22 @@ export let player = null;
 export async function initPlayer() {
   console.log("🎮 Инициализация игрока...");
   
-  // Загружаем сохранение
-  const savedData = await loadPlayer();
-  
-  // Создаём игрока на основе сохранения
+  // Создаём игрока с базовыми значениями
   player = {
-    level: savedData.level || DEBUG_PLAYER.level,
-    gold: savedData.gold || DEBUG_PLAYER.gold,
-    classId: savedData.classId || DEBUG_PLAYER.classId,
+    level: 1,
+    gold: 100,
+    classId: "warrior",
     stats: {
-      hp: savedData.stats?.hp || DEBUG_PLAYER.stats.hp,
-      atk: savedData.stats?.atk || DEBUG_PLAYER.stats.atk,
-      def: savedData.stats?.def || DEBUG_PLAYER.stats.def,
-      crit: savedData.stats?.crit || DEBUG_PLAYER.stats.crit,
+      hp: 100,
+      atk: 10,
+      def: 5,
+      crit: 0.05,
     },
   };
   
   // Добавляем maxHp и currentHp
   player.maxHp = player.stats.hp;
-  player.currentHp = savedData.currentHp || player.stats.hp;
+  player.currentHp = player.stats.hp;
   
   console.log("✅ Игрок инициализирован:", player);
   return player;
