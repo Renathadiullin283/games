@@ -869,9 +869,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   console.log('🎮 Игра запущена!');
 });
-// В конце main.js добавьте:
-console.log('🛒 Магазин готов! Категории:', 
-  this.shopSystem ? this.shopSystem.getCategories() : 'не инициализирован');
+
 
 // Для быстрого теста в консоли браузера можно использовать:
 window.testShop = () => {
