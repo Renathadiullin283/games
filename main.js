@@ -31,7 +31,8 @@ class SceneManager {
 
   async init() {
     console.log('🚀 Инициализация игры...');
-    
+    // Сначала скрываем прелоадер
+    this.hidePreloader();
     // Инициализируем все сцены
     this.scenes = {
       menu: document.getElementById('scene-menu'),
@@ -60,8 +61,43 @@ class SceneManager {
     }
     
     console.log('🎮 Игра готова!');
+  } catch (error) {
+    console.error('❌ Ошибка инициализации игры:', error);
+    // Показываем сообщение об ошибке
+    this.showError('Ошибка загрузки игры. Пожалуйста, обновите страницу.');
   }
-
+}
+// Добавляем метод для показа ошибок
+showError(message) {
+  const errorDiv = document.createElement('div');
+  errorDiv.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(231, 76, 60, 0.95);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    z-index: 9999;
+    text-align: center;
+    max-width: 80%;
+  `;
+  errorDiv.innerHTML = `
+    <h3>❌ Ошибка</h3>
+    <p>${message}</p>
+    <button onclick="location.reload()" style="
+      background: white;
+      color: #e74c3c;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 5px;
+      margin-top: 10px;
+      cursor: pointer;
+    ">Обновить страницу</button>
+  `;
+  document.body.appendChild(errorDiv);
+}
   // Добавляем тестовые предметы (для демонстрации)
   addTestItems() {
     console.log('📦 Добавляем тестовые предметы...');
