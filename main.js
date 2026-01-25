@@ -7,15 +7,15 @@ import {
   InventorySystem, 
   ITEMS_DB, 
   generateRandomItem,
-  ITEM_RARITY  // Убедитесь, что импортируется
+  ITEM_RARITY
 } from './inventory.js';
 import { 
-    ShopSystem, 
-    SHOP_CATEGORIES, 
-    initializeShopUI, 
-    initializeShopTabs, 
-    updateRefreshInfo 
-  } from './shop.js';
+  ShopSystem, 
+  SHOP_CATEGORIES, 
+  initializeShopUI, 
+  initializeShopTabs, 
+  updateRefreshInfo 
+} from './shop.js';
 
 class SceneManager {
   constructor() {
@@ -520,7 +520,7 @@ class SceneManager {
     }
   }
 
- updateShop() {
+  updateShop() {
     if (!player || !this.shopSystem) return;
     
     // Обновляем баланс
@@ -544,6 +544,7 @@ class SceneManager {
     // Обновляем информацию об обновлении
     updateRefreshInfo(this.shopSystem, player);
   }
+
   updateSkills() {
     // TODO: Добавить логику навыков
   }
@@ -690,42 +691,52 @@ class SceneManager {
         savePlayer(player);
       }
     });
-    initializeNotifications() {
-  window.showNotification = (title, message, type = 'info', duration = 5000) => {
-    const container = document.getElementById('notifications');
-    if (!container) return;
-    
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.innerHTML = `
-      <div class="notification-icon">${this.getNotificationIcon(type)}</div>
-      <div class="notification-content">
-        <div class="notification-title">${title}</div>
-        <div class="notification-message">${message}</div>
-      </div>
-    `;
-    
-    container.appendChild(notification);
-    
-    // Автоудаление
-    setTimeout(() => {
-      notification.style.opacity = '0';
-      notification.style.transform = 'translateX(100%)';
-      setTimeout(() => notification.remove(), 300);
-    }, duration);
-  };
-}
 
-getNotificationIcon(type) {
-  const icons = {
-    success: '✅',
-    error: '❌',
-    warning: '⚠️',
-    info: 'ℹ️'
-  };
-  return icons[type] || 'ℹ️';
-}
     console.log('✅ Обработчики событий инициализированы');
+  }
+
+  initializeNotifications() {
+    window.showNotification = (title, message, type = 'info', duration = 5000) => {
+      const container = document.getElementById('notifications');
+      if (!container) return;
+      
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      notification.innerHTML = `
+        <div class="notification-icon">${this.getNotificationIcon(type)}</div>
+        <div class="notification-content">
+          <div class="notification-title">${title}</div>
+          <div class="notification-message">${message}</div>
+        </div>
+      `;
+      
+      container.appendChild(notification);
+      
+      // Автоудаление
+      setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => notification.remove(), 300);
+      }, duration);
+    };
+  }
+
+  getNotificationIcon(type) {
+    const icons = {
+      success: '✅',
+      error: '❌',
+      warning: '⚠️',
+      info: 'ℹ️'
+    };
+    return icons[type] || 'ℹ️';
+  }
+
+  initializeDailyRewards() {
+    // TODO: Реализовать ежедневные награды
+  }
+
+  initializeMobileMenu() {
+    // TODO: Реализовать мобильное меню
   }
 }
 
