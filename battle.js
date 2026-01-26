@@ -178,20 +178,20 @@ class BattleSystem {
     }
   }
 
-  updateLocationList() {
+ updateLocationList() {
     if (!this.locationList) return;
     
     this.locationList.innerHTML = '';
     
     // Сортируем локации по уровню
-    const sortedLocations = Object.entries(LOCATIONS).sort(([, a], [, b]) => a.level - b.level);
+    const sortedLocations = Object.entries(LOCATIONS).sort(([, a], [, b]) => a.baseLevel - b.baseLevel);
     
     for (const [locId, loc] of sortedLocations) {
       const btn = document.createElement('div');
       btn.className = 'location-btn';
       
       // Проверяем доступность локации
-      const isAvailable = player.level >= loc.level;
+      const isAvailable = player && player.level >= loc.baseLevel;
       
       if (!isAvailable) {
         btn.classList.add('locked');
@@ -204,12 +204,12 @@ class BattleSystem {
         <div class="location-details">
           <strong>${loc.name}</strong>
           <div class="location-stats">
-            <span>📊 Ур. ${loc.level}</span>
+            <span>📊 Ур. ${loc.baseLevel}</span>
             <span>👾 Врагов: ${loc.enemies}</span>
-            <span>❤️ HP: ${loc.enemyHp}</span>
-            <span>⚔️ ATK: ${loc.enemyAtk}</span>
+            ${loc.enemyHp ? `<span>❤️ HP: ${loc.enemyHp}</span>` : ''}
+            ${loc.enemyAtk ? `<span>⚔️ ATK: ${loc.enemyAtk}</span>` : ''}
           </div>
-          ${!isAvailable ? '<div class="location-lock">🔒 Требуется уровень ' + loc.level + '</div>' : ''}
+          ${!isAvailable ? '<div class="location-lock">🔒 Требуется уровень ' + loc.baseLevel + '</div>' : ''}
         </div>
       `;
       
@@ -223,7 +223,6 @@ class BattleSystem {
       this.locationList.appendChild(btn);
     }
   }
-
   getLocationIcon(locationName) {
     if (locationName.includes('Завод')) return '🏭';
     if (locationName.includes('Лес')) return '🌲';
