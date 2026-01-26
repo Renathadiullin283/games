@@ -454,19 +454,19 @@ class SceneManager {
     }
   }
 
-  updateLocationList() {
+updateLocationList() {
     const locationList = document.getElementById('location-list');
-    if (!locationList) return;
+    if (!locationList || !player) return;
     
     locationList.innerHTML = '';
     
-    const sortedLocations = Object.entries(LOCATIONS).sort(([, a], [, b]) => a.level - b.level);
+    const sortedLocations = Object.entries(LOCATIONS).sort(([, a], [, b]) => a.baseLevel - b.baseLevel);
     
     for (const [locId, loc] of sortedLocations) {
       const btn = document.createElement('div');
       btn.className = 'location-btn';
       
-      const isAvailable = player.level >= loc.level;
+      const isAvailable = player.level >= loc.baseLevel;
       const isLocked = !isAvailable;
       
       if (isLocked) {
@@ -485,12 +485,12 @@ class SceneManager {
         <div class="location-details">
           <strong>${loc.name}</strong>
           <div class="location-stats">
-            <span>📊 Ур. ${loc.level}</span>
+            <span>📊 Ур. ${loc.baseLevel}</span>
             <span>👾 Врагов: ${loc.enemies}</span>
-            <span>❤️ HP: ${loc.enemyHp}</span>
-            <span>⚔️ ATK: ${loc.enemyAtk}</span>
+            ${loc.enemyHp ? `<span>❤️ HP: ${loc.enemyHp}</span>` : ''}
+            ${loc.enemyAtk ? `<span>⚔️ ATK: ${loc.enemyAtk}</span>` : ''}
           </div>
-          ${isLocked ? '<div class="location-lock">🔒 Требуется уровень ' + loc.level + '</div>' : ''}
+          ${isLocked ? '<div class="location-lock">🔒 Требуется уровень ' + loc.baseLevel + '</div>' : ''}
         </div>
       `;
       
