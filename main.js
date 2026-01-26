@@ -620,35 +620,39 @@ class SceneManager {
     this.switchShopCategory(this.shopSystem.currentCategory);
   }
 
-  fillShopCategory(category) {
-    const container = document.getElementById(`shop-${category}`);
-    if (!container) {
-      console.warn(`Контейнер для категории ${category} не найден`);
-      return;
-    }
-    
-    container.innerHTML = '';
-    
-    const items = this.shopSystem.getCategoryItems(category);
-    
-    console.log(`Категория ${category}: ${items.length} товаров`);
-    
-    if (items.length === 0) {
-      container.innerHTML = `
-        <div class="shop-empty">
-          <div class="empty-icon">🛒</div>
-          <div class="empty-text">Товары в этой категории закончились</div>
-          <div class="empty-hint">Обновите магазин или выберите другую категорию</div>
-        </div>
-      `;
-      return;
-    }
-    
-    items.forEach(item => {
-      const itemElement = this.createShopItemElement(item, category);
-      container.appendChild(itemElement);
-    });
+// main.js - обновленный метод fillShopCategory
+fillShopCategory(category) {
+  const container = document.getElementById('shop-items-container');
+  if (!container) {
+    console.warn('Контейнер товаров магазина не найден');
+    return;
   }
+  
+  // Очищаем контейнер
+  container.innerHTML = '';
+  
+  // Получаем товары для этой категории
+  const items = this.shopSystem.getCategoryItems(category);
+  
+  console.log(`Категория ${category}: ${items.length} товаров`);
+  
+  if (items.length === 0) {
+    container.innerHTML = `
+      <div class="shop-empty">
+        <div class="empty-icon">🛒</div>
+        <div class="empty-text">Товары в этой категории закончились</div>
+        <div class="empty-hint">Обновите магазин или выберите другую категорию</div>
+      </div>
+    `;
+    return;
+  }
+  
+  // Добавляем товары в контейнер
+  items.forEach(item => {
+    const itemElement = this.createShopItemElement(item, category);
+    container.appendChild(itemElement);
+  });
+}
 
   createShopItemElement(item, category) {
     const rarity = ITEM_RARITY[item.rarity] || ITEM_RARITY.common;
