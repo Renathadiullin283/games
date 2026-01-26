@@ -1,4 +1,4 @@
-// shop.js
+// shop.js - ИСПРАВЛЕННАЯ ВЕРСИЯ
 import { ITEMS_DB, ITEM_RARITY, generateRandomItem } from './inventory.js';
 
 // Система магазина
@@ -8,11 +8,13 @@ export class ShopSystem {
     this.inventorySystem = inventorySystem;
     this.categories = ['weapons', 'armor', 'potions', 'special', 'materials'];
     this.currentCategory = 'weapons';
+    
+    // СОЗДАЕМ СЧЕТЧИК ДЛЯ ГЕНЕРАЦИИ УНИКАЛЬНЫХ ID
+    this.nextItemId = 1000; // Начинаем с 1000
+    
     this.shopItems = this.loadShopItems() || this.generateInitialShop();
     this.shopRefreshTime = this.loadRefreshTime() || Date.now() + (60 * 60 * 1000); // 1 час
-    this.refreshCost = 50; // Стоимость обновления магазина
-    // Добавляем счетчик
-    this.nextItemId = 1;
+    this.refreshCost = 50;
   }
 
   // Загрузка товаров магазина
@@ -23,7 +25,10 @@ export class ShopSystem {
         const data = JSON.parse(saved);
         // Проверяем не истекло ли время обновления
         if (data.expires > Date.now()) {
-          this.nextItemId = data.nextItemId || 1; // Загружаем счетчик
+          // ВОССТАНАВЛИВАЕМ СЧЕТЧИК ИЗ СОХРАНЕННЫХ ДАННЫХ
+          if (data.nextItemId) {
+            this.nextItemId = data.nextItemId;
+          }
           return data.items;
         }
       }
@@ -38,8 +43,8 @@ export class ShopSystem {
     try {
       const data = {
         items: this.shopItems,
-        expires: this.shopRefreshTime
-        nextItemId: this.nextItemId // Сохраняем счетчик
+        expires: this.shopRefreshTime,
+        nextItemId: this.nextItemId // СОХРАНЯЕМ СЧЕТЧИК
       };
       localStorage.setItem('shop_data', JSON.stringify(data));
     } catch (e) {
@@ -47,96 +52,83 @@ export class ShopSystem {
     }
   }
 
-  // Загрузка времени обновления
-  loadRefreshTime() {
-    try {
-      const saved = localStorage.getItem('shop_refresh');
-      return saved ? parseInt(saved) : null;
-    } catch (e) {
-      console.error('Ошибка загрузки времени обновления:', e);
-    }
-    return null;
-  }
-
-  // Сохранение времени обновления
-  saveRefreshTime() {
-    try {
-      localStorage.setItem('shop_refresh', this.shopRefreshTime.toString());
-    } catch (e) {
-      console.error('Ошибка сохранения времени обновления:', e);
-    }
-  }
-
   // Генерация начальных товаров
-generateInitialShop() {
-  const items = {
-    weapons: [],
-    armor: [],
-    potions: [],
-    special: [],
-    materials: []
-  };
+  generateInitialShop() {
+    const items = {
+      weapons: [],
+      armor: [],
+      potions: [],
+      special: [],
+      materials: []
+    };
 
-  // Добавляем базовые товары
-  items.weapons.push(
-    { ...ITEMS_DB.sword_beginner, shopPrice: 75, stock: 3 },
-    { ...ITEMS_DB.axe_warrior, shopPrice: 180, stock: 2 },
-    { ...ITEMS_DB.dagger_assassin, shopPrice: 150, stock: 2 }
-  );
+    // Добавляем базовые товары
+    items.weapons.push(
+      { ...ITEMS_DB.sword_beginner, shopPrice: 75, stock: 3 },
+      { ...ITEMS_DB.axe_warrior, shopPrice: 180, stock: 2 },
+      { ...ITEMS_DB.dagger_assassin, shopPrice: 150, stock: 2 }
+    );
 
-  items.armor.push(
-    { ...ITEMS_DB.leather_armor, shopPrice: 90, stock: 3 },
-    { ...ITEMS_DB.iron_armor, shopPrice: 225, stock: 1 }
-  );
+    items.armor.push(
+      { ...ITEMS_DB.leather_armor, shopPrice: 90, stock: 3 },
+      { ...ITEMS_DB.iron_armor, shopPrice: 225, stock: 1 }
+    );
 
-  items.potions.push(
-    { ...ITEMS_DB.health_potion_small, shopPrice: 30, stock: 10 },
-    { ...ITEMS_DB.health_potion_medium, shopPrice: 68, stock: 5 },
-    { ...ITEMS_DB.strength_potion, shopPrice: 90, stock: 3 }
-  );
+    items.potions.push(
+      { ...ITEMS_DB.health_potion_small, shopPrice: 30, stock: 10 },
+      { ...ITEMS_DB.health_potion_medium, shopPrice: 68, stock: 5 },
+      { ...ITEMS_DB.strength_potion, shopPrice: 90, stock: 3 }
+    );
 
-  items.materials.push(
-    { ...ITEMS_DB.iron_ore, shopPrice: 8, stock: 20 },
-    { ...ITEMS_DB.gold_ore, shopPrice: 23, stock: 10 }
-  );
+    items.materials.push(
+      { ...ITEMS_DB.iron_ore, shopPrice: 8, stock: 20 },
+      { ...ITEMS_DB.gold_ore, shopPrice: 23, stock: 10 }
+    );
 
-  // Генерируем случайные товары для специального раздела
-  if (this.player) {
-    const playerLevel = this.player.level;
-    
-    for (let i = 0; i < 4; i++) {
-      // Генерируем предмет +/- 2 уровня от игрока
-      const minLevel = Math.max(1, playerLevel - 2);
-      const maxLevel = playerLevel + 2;
+    // Генерируем случайные товары для специального раздела
+    if (this.player) {
+      const playerLevel = this.player.level;
       
-      const randomItem = generateRandomItem(minLevel, maxLevel);
-      
-      // Добавляем уникальный ID для магазина
-      const shopItem = {
-        ...randomItem,
-        id: `shop_special_${Date.now()}_${i}`,  // Используем i
-        shopPrice: Math.floor(randomItem.value * (1.5 + Math.random() * 0.5)),
-        stock: 1,
-        isSpecial: true
-      };
-      
-      items.special.push(shopItem);
+      for (let i = 0; i < 4; i++) {
+        // Генерируем предмет +/- 2 уровня от игрока
+        const minLevel = Math.max(1, playerLevel - 2);
+        const maxLevel = playerLevel + 2;
+        
+        const randomItem = generateRandomItem(minLevel, maxLevel);
+        
+        // СОЗДАЕМ УНИКАЛЬНЫЙ ID С ИСПОЛЬЗОВАНИЕМ nextItemId
+        const uniqueId = `shop_item_${this.nextItemId++}`;
+        
+        const shopItem = {
+          ...randomItem,
+          id: uniqueId,  // ИСПОЛЬЗУЕМ УНИКАЛЬНЫЙ ID
+          shopPrice: Math.floor(randomItem.value * (1.5 + Math.random() * 0.5)),
+          stock: 1,
+          isSpecial: true
+        };
+        
+        items.special.push(shopItem);
+      }
+    } else {
+      console.warn('Player not loaded, using default special items');
+      for (let i = 0; i < 3; i++) {
+        const randomItem = generateRandomItem(1, 5);
+        
+        // СОЗДАЕМ УНИКАЛЬНЫЙ ID С ИСПОЛЬЗОВАНИЕМ nextItemId
+        const uniqueId = `shop_item_${this.nextItemId++}`;
+        
+        items.special.push({
+          ...randomItem,
+          id: uniqueId,  // ИСПОЛЬЗУЕМ УНИКАЛЬНЫЙ ID
+          shopPrice: Math.floor(randomItem.value * 1.5),
+          stock: 1,
+          isSpecial: true
+        });
+      }
     }
-  } else {
-    console.warn('Player not loaded, using default special items');
-    for (let i = 0; i < 3; i++) {
-      const randomItem = generateRandomItem(1, 5);
-      items.special.push({
-        ...randomItem,
-        shopPrice: Math.floor(randomItem.value * 1.5),
-        stock: 1,
-        isSpecial: true
-      });
-    }
+
+    return items;
   }
-
-  return items;
-}
 
   // Обновление товаров в магазине
   refreshShop() {
@@ -149,7 +141,6 @@ generateInitialShop() {
     this.shopRefreshTime = Date.now() + (60 * 60 * 1000); // 1 час
     
     this.saveShopItems();
-    this.saveRefreshTime();
     
     return { 
       success: true, 
@@ -157,13 +148,6 @@ generateInitialShop() {
     };
   }
 
-  // Генерация уникального ID
-  generateItemId() {
-    const id = `shop_item_${this.nextItemId}`;
-    this.nextItemId++;
-    return id;
-  }
-  
   // Генерация товаров с учетом уровня игрока
   generateShopItems() {
     const items = {
@@ -175,121 +159,123 @@ generateInitialShop() {
     };
 
     const playerLevel = this.player.level || 1;
-    const rarityChance = Math.min(0.1 + (playerLevel * 0.01), 0.5); // Шанс получить редкий товар
+    const rarityChance = Math.min(0.1 + (playerLevel * 0.01), 0.5);
 
     // Оружие (3-5 товаров)
     const weaponCount = 3 + Math.floor(Math.random() * 3);
     for (let i = 0; i < weaponCount; i++) {
-      const weapon = this.generateWeapon(playerLevel, rarityChance, i);
+      const weapon = this.generateWeapon(playerLevel, rarityChance);
       items.weapons.push(weapon);
     }
 
     // Броня (2-4 товара)
     const armorCount = 2 + Math.floor(Math.random() * 3);
     for (let i = 0; i < armorCount; i++) {
-      const armor = this.generateArmor(playerLevel, rarityChance, i);
+      const armor = this.generateArmor(playerLevel, rarityChance);
       items.armor.push(armor);
     }
 
     // Зелья (5-10 товаров)
     const potionCount = 5 + Math.floor(Math.random() * 6);
     for (let i = 0; i < potionCount; i++) {
-      const potion = this.generatePotion(playerLevel, i);
+      const potion = this.generatePotion(playerLevel);
       items.potions.push(potion);
     }
 
     // Материалы (10-20 товаров)
     const materialCount = 10 + Math.floor(Math.random() * 11);
     for (let i = 0; i < materialCount; i++) {
-      const material = this.generateMaterial(playerLevel, i);
+      const material = this.generateMaterial(playerLevel);
       items.materials.push(material);
     }
 
     // Специальные товары (1-3 товара)
     const specialCount = 1 + Math.floor(Math.random() * 3);
     for (let i = 0; i < specialCount; i++) {
-      const special = this.generateSpecialItem(playerLevel, i);
+      const special = this.generateSpecialItem(playerLevel);
       items.special.push(special);
     }
 
     return items;
   }
 
-  // Генерация оружия
-// generateWeapon (строка ~263)
-generateWeapon(level, rarityChance, index = 0) {  // Добавлен параметр index
-  const weaponTypes = ['sword', 'axe', 'dagger', 'bow', 'staff'];
-  const weaponType = weaponTypes[Math.floor(Math.random() * weaponTypes.length)];
-  
-  const isRare = Math.random() < rarityChance;
-  const rarity = isRare ? (Math.random() < 0.3 ? 'rare' : 'uncommon') : 'common';
-  const rarityInfo = ITEM_RARITY[rarity];
-  
-  const baseStats = {
-    sword: { atk: 5, def: 1 },
-    axe: { atk: 7, hp: 10 },
-    dagger: { atk: 4, crit: 0.05 },
-    bow: { atk: 6 },
-    staff: { atk: 4 }
-  };
-  
-  const stats = { ...baseStats[weaponType] };
-  
-  // Увеличиваем статы в зависимости от уровня и редкости
-  const levelMultiplier = 1 + (level / 10);
-  const rarityMultiplier = rarityInfo.multiplier;
-  
-  Object.keys(stats).forEach(stat => {
-    if (stat !== 'crit') {
-      stats[stat] = Math.floor(stats[stat] * levelMultiplier * rarityMultiplier);
-    }
-  });
-  
-  const weaponNames = {
-    sword: ['Меч', 'Клинок', 'Паляш'],
-    axe: ['Топор', 'Секира', 'Бронебой'],
-    dagger: ['Кинжал', 'Стилет', 'Коготь'],
-    bow: ['Лук', 'Арбалет', 'Духолат'],
-    staff: ['Посох', 'Жезл', 'Скипетр']
-  };
-  
-  const prefixes = {
-    common: ['Обычный', 'Простой', 'Начальный'],
-    uncommon: ['Закаленный', 'Усиленный', 'Надежный'],
-    rare: ['Редкий', 'Магический', 'Легендарный']
-  };
-  
-  const namePrefix = prefixes[rarity][Math.floor(Math.random() * prefixes[rarity].length)];
-  const name = `${namePrefix} ${weaponNames[weaponType][0]}`;
-  
-  const icons = {
-    sword: '🗡️',
-    axe: '🪓',
-    dagger: '🔪',
-    bow: '🏹',
-    staff: '🪄'
-  };
-  
-  return {
-    id: this.generateItemId(), // Используем нашу функцию
-    name: name,
-    type: 'weapon',
-    weaponType: weaponType,
-    rarity: rarity,
-    stats: stats,
-    description: `Мощное оружие для уровня ${level}`,
-    icon: icons[weaponType],
-    value: Math.floor(50 * levelMultiplier * rarityMultiplier),
-    shopPrice: Math.floor(75 * levelMultiplier * rarityMultiplier),
-    stock: 1 + Math.floor(Math.random() * 3),
-    levelRequirement: level
-  };
-}
-  // Генерация брони
-  generateArmor(level, rarityChance, index = 0) {  // Добавлен параметр index
-  const armorTypes = ['chest', 'helmet', 'boots', 'gloves'];
-  const armorType = armorTypes[Math.floor(Math.random() * armorTypes.length)];
+  // Генерация оружия - ИСПРАВЛЕННАЯ ВЕРСИЯ
+  generateWeapon(level, rarityChance) {
+    const weaponTypes = ['sword', 'axe', 'dagger', 'bow', 'staff'];
+    const weaponType = weaponTypes[Math.floor(Math.random() * weaponTypes.length)];
     
+    const isRare = Math.random() < rarityChance;
+    const rarity = isRare ? (Math.random() < 0.3 ? 'rare' : 'uncommon') : 'common';
+    const rarityInfo = ITEM_RARITY[rarity];
+    
+    const baseStats = {
+      sword: { atk: 5, def: 1 },
+      axe: { atk: 7, hp: 10 },
+      dagger: { atk: 4, crit: 0.05 },
+      bow: { atk: 6 },
+      staff: { atk: 4 }
+    };
+    
+    const stats = { ...baseStats[weaponType] };
+    
+    const levelMultiplier = 1 + (level / 10);
+    const rarityMultiplier = rarityInfo.multiplier;
+    
+    Object.keys(stats).forEach(stat => {
+      if (stat !== 'crit') {
+        stats[stat] = Math.floor(stats[stat] * levelMultiplier * rarityMultiplier);
+      }
+    });
+    
+    const weaponNames = {
+      sword: ['Меч', 'Клинок', 'Паляш'],
+      axe: ['Топор', 'Секира', 'Бронебой'],
+      dagger: ['Кинжал', 'Стилет', 'Коготь'],
+      bow: ['Лук', 'Арбалет', 'Духолат'],
+      staff: ['Посох', 'Жезл', 'Скипетр']
+    };
+    
+    const prefixes = {
+      common: ['Обычный', 'Простой', 'Начальный'],
+      uncommon: ['Закаленный', 'Усиленный', 'Надежный'],
+      rare: ['Редкий', 'Магический', 'Легендарный']
+    };
+    
+    const namePrefix = prefixes[rarity][Math.floor(Math.random() * prefixes[rarity].length)];
+    const name = `${namePrefix} ${weaponNames[weaponType][0]}`;
+    
+    const icons = {
+      sword: '🗡️',
+      axe: '🪓',
+      dagger: '🔪',
+      bow: '🏹',
+      staff: '🪄'
+    };
+    
+    // СОЗДАЕМ УНИКАЛЬНЫЙ ID С ИСПОЛЬЗОВАНИЕМ nextItemId
+    const uniqueId = `weapon_${this.nextItemId++}`;
+    
+    return {
+      id: uniqueId,  // ИСПОЛЬЗУЕМ УНИКАЛЬНЫЙ ID
+      name: name,
+      type: 'weapon',
+      weaponType: weaponType,
+      rarity: rarity,
+      stats: stats,
+      description: `Мощное оружие для уровня ${level}`,
+      icon: icons[weaponType],
+      value: Math.floor(50 * levelMultiplier * rarityMultiplier),
+      shopPrice: Math.floor(75 * levelMultiplier * rarityMultiplier),
+      stock: 1 + Math.floor(Math.random() * 3),
+      levelRequirement: level
+    };
+  }
+
+  // Генерация брони - ИСПРАВЛЕННАЯ ВЕРСИЯ
+  generateArmor(level, rarityChance) {
+    const armorTypes = ['chest', 'helmet', 'boots', 'gloves'];
+    const armorType = armorTypes[Math.floor(Math.random() * armorTypes.length)];
+      
     const isRare = Math.random() < rarityChance;
     const rarity = isRare ? (Math.random() < 0.3 ? 'rare' : 'uncommon') : 'common';
     const rarityInfo = ITEM_RARITY[rarity];
@@ -303,7 +289,6 @@ generateWeapon(level, rarityChance, index = 0) {  // Добавлен парам
     
     const stats = { ...baseStats[armorType] };
     
-    // Увеличиваем статы
     const levelMultiplier = 1 + (level / 10);
     const rarityMultiplier = rarityInfo.multiplier;
     
@@ -341,8 +326,11 @@ generateWeapon(level, rarityChance, index = 0) {  // Добавлен парам
       gloves: 'gloves'
     };
     
+    // СОЗДАЕМ УНИКАЛЬНЫЙ ID С ИСПОЛЬЗОВАНИЕМ nextItemId
+    const uniqueId = `armor_${this.nextItemId++}`;
+    
     return {
-      id: this.generateItemId(), 
+      id: uniqueId,  // ИСПОЛЬЗУЕМ УНИКАЛЬНЫЙ ID
       name: name,
       type: typeMap[armorType],
       rarity: rarity,
@@ -356,8 +344,8 @@ generateWeapon(level, rarityChance, index = 0) {  // Добавлен парам
     };
   }
 
-  // Генерация зелий
-  generatePotion(level, index = 0) {  // Добавлен параметр index
+  // Генерация зелий - ИСПРАВЛЕННАЯ ВЕРСИЯ
+  generatePotion(level) {
     const potionTypes = ['health', 'strength', 'defense', 'speed'];
     const potionType = potionTypes[Math.floor(Math.random() * potionTypes.length)];
     
@@ -392,8 +380,11 @@ generateWeapon(level, rarityChance, index = 0) {  // Добавлен парам
     
     const data = potionData[potionType];
     
+    // СОЗДАЕМ УНИКАЛЬНЫЙ ID С ИСПОЛЬЗОВАНИЕМ nextItemId
+    const uniqueId = `potion_${this.nextItemId++}`;
+    
     return {
-      id: this.generateItemId(), 
+      id: uniqueId,  // ИСПОЛЬЗУЕМ УНИКАЛЬНЫЙ ID
       name: data.name,
       type: 'potion',
       rarity: 'common',
@@ -408,8 +399,8 @@ generateWeapon(level, rarityChance, index = 0) {  // Добавлен парам
     };
   }
 
-  // Генерация материалов
-  generateMaterial(level, index = 0) {
+  // Генерация материалов - ИСПРАВЛЕННАЯ ВЕРСИЯ
+  generateMaterial(level) {
     const materials = [
       { name: 'Железная руда', icon: '⛏️', value: 5 },
       { name: 'Золотая руда', icon: '💰', value: 15 },
@@ -424,8 +415,11 @@ generateWeapon(level, rarityChance, index = 0) {  // Добавлен парам
     const material = materials[Math.floor(Math.random() * materials.length)];
     const levelMultiplier = 1 + (level / 30);
     
+    // СОЗДАЕМ УНИКАЛЬНЫЙ ID С ИСПОЛЬЗОВАНИЕМ nextItemId
+    const uniqueId = `material_${this.nextItemId++}`;
+    
     return {
-      id: this.generateItemId(), 
+      id: uniqueId,  // ИСПОЛЬЗУЕМ УНИКАЛЬНЫЙ ID
       name: material.name,
       type: 'material',
       rarity: 'common',
@@ -438,9 +432,8 @@ generateWeapon(level, rarityChance, index = 0) {  // Добавлен парам
     };
   }
 
-  // Генерация специального товара
-  generateSpecialItem(level, index = 0) {
-    // 30% шанс на редкий предмет, 5% на эпический
+  // Генерация специального товара - ИСПРАВЛЕННАЯ ВЕРСИЯ
+  generateSpecialItem(level) {
     const rand = Math.random();
     let rarity = 'uncommon';
     if (rand < 0.05) {
@@ -452,15 +445,12 @@ generateWeapon(level, rarityChance, index = 0) {  // Добавлен парам
     const rarityInfo = ITEM_RARITY[rarity];
     const levelMultiplier = 1 + (level / 5);
     
-    // Случайный тип предмета
     const itemTypes = ['weapon', 'armor', 'helmet', 'boots', 'ring', 'amulet'];
     const itemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
     
-    // Генерация статов
     const stats = {};
     const possibleStats = ['hp', 'atk', 'def', 'crit'];
     
-    // Уникальные предметы имеют больше статов
     const statCount = 1 + Math.floor(Math.random() * 3);
     for (let i = 0; i < statCount; i++) {
       const stat = possibleStats[Math.floor(Math.random() * possibleStats.length)];
@@ -503,8 +493,11 @@ generateWeapon(level, rarityChance, index = 0) {  // Добавлен парам
       amulet: '📿'
     };
     
+    // СОЗДАЕМ УНИКАЛЬНЫЙ ID С ИСПОЛЬЗОВАНИЕМ nextItemId
+    const uniqueId = `special_${this.nextItemId++}`;
+    
     return {
-      id: this.generateItemId(), 
+      id: uniqueId,  // ИСПОЛЬЗУЕМ УНИКАЛЬНЫЙ ID
       name: name,
       type: itemType,
       rarity: rarity,
@@ -518,7 +511,7 @@ generateWeapon(level, rarityChance, index = 0) {  // Добавлен парам
       isSpecial: true
     };
   }
-
+ 
   // Покупка предмета
   buyItem(itemId, category) {
     const categoryItems = this.shopItems[category];
@@ -617,7 +610,6 @@ generateWeapon(level, rarityChance, index = 0) {  // Добавлен парам
     this.shopItems = this.generateShopItems();
     this.shopRefreshTime = Date.now() + (60 * 60 * 1000);
     this.saveShopItems();
-    this.saveRefreshTime();
     return 'Магазин обновлен!';
   }
 
