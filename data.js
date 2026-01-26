@@ -38,6 +38,7 @@ export const CLASSES = {
   },
 };
 
+
 export const LOCATIONS = {
   // Лесные локации (уровни 1-5)
   forest: {
@@ -45,6 +46,8 @@ export const LOCATIONS = {
     description: "Густой лес, кишащий дикими существами",
     enemies: 6,
     baseLevel: 1,
+    enemyHp: 50,      // Добавлено
+    enemyAtk: 8,      // Добавлено
     enemyTypes: [
       { type: 'goblin', weight: 3 },
       { type: 'wolf', weight: 2 },
@@ -63,6 +66,8 @@ export const LOCATIONS = {
     description: "Заброшенная дорога, охраняемая бандитами",
     enemies: 8,
     baseLevel: 2,
+    enemyHp: 60,      // Добавлено
+    enemyAtk: 10,     // Добавлено
     enemyTypes: [
       { type: 'goblin', weight: 2 },
       { type: 'wolf', weight: 3 },
@@ -82,6 +87,8 @@ export const LOCATIONS = {
     description: "Старый механический комплекс",
     enemies: 10,
     baseLevel: 3,
+    enemyHp: 120,     // Добавлено
+    enemyAtk: 15,     // Добавлено
     enemyTypes: [
       { type: 'robot', weight: 3 },
       { type: 'toxic_slime', weight: 2 },
@@ -100,6 +107,8 @@ export const LOCATIONS = {
     description: "Затопленные туннели под городом",
     enemies: 12,
     baseLevel: 4,
+    enemyHp: 80,      // Добавлено
+    enemyAtk: 12,     // Добавлено
     enemyTypes: [
       { type: 'toxic_slime', weight: 4 },
       { type: 'spider', weight: 2 },
@@ -119,6 +128,8 @@ export const LOCATIONS = {
     description: "Высокие горы, где живут опасные существа",
     enemies: 10,
     baseLevel: 5,
+    enemyHp: 300,     // Добавлено
+    enemyAtk: 30,     // Добавлено
     enemyTypes: [
       { type: 'wolf', weight: 2 },
       { type: 'ogre', weight: 1 },
@@ -138,6 +149,8 @@ export const LOCATIONS = {
     description: "Забытое подземелье с неупокоенными душами",
     enemies: 15,
     baseLevel: 6,
+    enemyHp: 100,     // Добавлено
+    enemyAtk: 18,     // Добавлено
     enemyTypes: [
       { type: 'skeleton', weight: 4 },
       { type: 'spider', weight: 2 },
@@ -156,6 +169,8 @@ export const LOCATIONS = {
     description: "Лабиринт темных пещер с древними существами",
     enemies: 18,
     baseLevel: 8,
+    enemyHp: 90,      // Добавлено
+    enemyAtk: 16,     // Добавлено
     enemyTypes: [
       { type: 'ogre', weight: 3 },
       { type: 'dark_mage', weight: 2 },
@@ -175,6 +190,8 @@ export const LOCATIONS = {
     description: "Огненная пещера великого дракона",
     enemies: 20,
     baseLevel: 10,
+    enemyHp: 500,     // Добавлено
+    enemyAtk: 45,     // Добавлено
     enemyTypes: [
       { type: 'dragon_whelp', weight: 3 },
       { type: 'dark_mage', weight: 1 },
@@ -193,6 +210,8 @@ export const LOCATIONS = {
     description: "Врата в иные миры, охраняемые демонами",
     enemies: 25,
     baseLevel: 12,
+    enemyHp: 180,     // Добавлено
+    enemyAtk: 35,     // Добавлено
     enemyTypes: [
       { type: 'dark_mage', weight: 3 },
       { type: 'dragon_whelp', weight: 2 },
