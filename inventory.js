@@ -217,6 +217,9 @@ export class InventorySystem {
 
   // Обновление статов игрока
   updatePlayerStats() {
+    if (!this.player.baseStats) {
+    this.player.baseStats = { ...this.player.stats };
+    }
     // Сначала сбрасываем базовые статы (без предметов)
     this.player.stats = { ...this.player.baseStats || this.player.stats };
     
