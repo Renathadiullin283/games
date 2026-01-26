@@ -1,4 +1,4 @@
-// shop.js - ИСПРАВЛЕННАЯ ВЕРСИЯ
+// shop.js - исправленная версия
 import { ITEMS_DB, ITEM_RARITY, generateRandomItem } from './inventory.js';
 
 // Система магазина
@@ -12,30 +12,34 @@ export class ShopSystem {
     // СОЗДАЕМ СЧЕТЧИК ДЛЯ ГЕНЕРАЦИИ УНИКАЛЬНЫХ ID
     this.nextItemId = 1000; // Начинаем с 1000
     
-    this.shopItems = this.loadShopItems() || this.generateInitialShop();
-    this.shopRefreshTime = this.loadRefreshTime() || Date.now() + (60 * 60 * 1000); // 1 час
+    // ЗАГРУЖАЕМ ДАННЫЕ МАГАЗИНА
+    const loadedData = this.loadShopData();
+    this.shopItems = loadedData.items || this.generateInitialShop();
+    this.shopRefreshTime = loadedData.refreshTime || Date.now() + (60 * 60 * 1000);
+    this.nextItemId = loadedData.nextItemId || this.nextItemId;
+    
     this.refreshCost = 50;
   }
 
-  // Загрузка товаров магазина
-  loadShopItems() {
+  // ЗАГРУЗКА ВСЕХ ДАННЫХ МАГАЗИНА
+  loadShopData() {
     try {
       const saved = localStorage.getItem('shop_data');
       if (saved) {
         const data = JSON.parse(saved);
         // Проверяем не истекло ли время обновления
         if (data.expires > Date.now()) {
-          // ВОССТАНАВЛИВАЕМ СЧЕТЧИК ИЗ СОХРАНЕННЫХ ДАННЫХ
-          if (data.nextItemId) {
-            this.nextItemId = data.nextItemId;
-          }
-          return data.items;
+          return {
+            items: data.items,
+            refreshTime: data.expires,
+            nextItemId: data.nextItemId || 1000
+          };
         }
       }
     } catch (e) {
       console.error('Ошибка загрузки магазина:', e);
     }
-    return null;
+    return {};
   }
 
   // Сохранение товаров магазина
@@ -511,7 +515,7 @@ export class ShopSystem {
       isSpecial: true
     };
   }
- 
+
   // Покупка предмета
   buyItem(itemId, category) {
     const categoryItems = this.shopItems[category];
@@ -632,7 +636,7 @@ export class ShopSystem {
     return this.currentCategory;
   }
 
-  // Получение всех категорий
+  // Получение всех категории
   getCategories() {
     return this.categories;
   }
