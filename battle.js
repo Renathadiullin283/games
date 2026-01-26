@@ -162,6 +162,9 @@ class BattleSystem {
   }
 
   showBattleInterface() {
+   if (window.sceneManager) {
+    window.sceneManager.showScene('battle');
+    }           
     // Показываем игровой интерфейс, скрываем выбор локаций
     if (this.locationSelection) {
       this.locationSelection.style.display = 'none';
