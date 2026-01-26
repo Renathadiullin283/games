@@ -11,10 +11,7 @@ import {
 } from './inventory.js';
 import { 
   ShopSystem, 
-  SHOP_CATEGORIES, 
-  initializeShopUI, 
-  initializeShopTabs, 
-  updateRefreshInfo 
+  SHOP_CATEGORIES
 } from './shop.js';
 
 class SceneManager {
@@ -22,101 +19,99 @@ class SceneManager {
     this.currentScene = 'menu';
     this.scenes = {};
     this.inventorySystem = null;
-    this.System = null;
+    this.shopSystem = null;
     this.initializeNotifications();
     this.initializeDailyRewards();
     this.initializeMobileMenu();
     this.init();
   }
 
-async init() {
-  console.log('🚀 Инициализация игры...');
-  
-  // Сначала скрываем прелоадер
-  this.hidePreloader();
-  
-  // Инициализируем все сцены
-  this.scenes = {
-    menu: document.getElementById('scene-menu'),
-    battle: document.getElementById('scene-battle'),
-    inventory: document.getElementById('scene-inventory'),
-    shop: document.getElementById('scene-shop'),
-    skills: document.getElementById('scene-skills'),
-    options: document.getElementById('scene-options')
-  };
+  async init() {
+    console.log('🚀 Инициализация игры...');
+    
+    // Сначала скрываем прелоадер
+    this.hidePreloader();
+    
+    // Инициализируем все сцены
+    this.scenes = {
+      menu: document.getElementById('scene-menu'),
+      battle: document.getElementById('scene-battle'),
+      inventory: document.getElementById('scene-inventory'),
+      shop: document.getElementById('scene-shop'),
+      skills: document.getElementById('scene-skills'),
+      options: document.getElementById('scene-options'),
+      achievements: document.getElementById('scene-achievements'),
+      leaderboard: document.getElementById('scene-leaderboard')
+    };
 
-  // Ждём загрузку игрока
-  try {
-    await playerReady;
-    console.log('✅ Игрок загружен:', player);
-    
-    // Инициализируем систему инвентаря
-    this.inventorySystem = new InventorySystem(player);
-    // Инициализируем систему магазина
-    this.shopSystem = new ShopSystem(player, this.inventorySystem);
-    this.initEventListeners();
-    this.updateAllDisplays();
-    this.showScene('menu');
-    
-    // Для отладки: добавляем несколько тестовых предметов
-    if (this.inventorySystem.items.length === 0) {
-      this.addTestItems();
+    // Ждём загрузку игрока
+    try {
+      await playerReady;
+      console.log('✅ Игрок загружен:', player);
+      
+      // Инициализируем систему инвентаря
+      this.inventorySystem = new InventorySystem(player);
+      // Инициализируем систему магазина
+      this.shopSystem = new ShopSystem(player, this.inventorySystem);
+      this.initEventListeners();
+      this.updateAllDisplays();
+      this.showScene('menu');
+      
+      // Для отладки: добавляем несколько тестовых предметов
+      if (this.inventorySystem.items.length === 0) {
+        this.addTestItems();
+      }
+      
+      console.log('🎮 Игра готова!');
+      this.testShop();
+      
+    } catch (error) {
+      console.error('❌ Ошибка инициализации игры:', error);
+      this.showError('Ошибка загрузки игры. Пожалуйста, обновите страницу.');
     }
-    
-    console.log('🎮 Игра готова!');
-    // Тестируем магазин
-    this.testShop();
-    
-  } catch (error) {
-    console.error('❌ Ошибка инициализации игры:', error);
-    // Показываем сообщение об ошибке
-    this.showError('Ошибка загрузки игры. Пожалуйста, обновите страницу.');
   }
-}
 
-// Добавляем метод для скрытия прелоадера
-hidePreloader() {
-  const preloader = document.getElementById('preloader');
-  if (preloader) {
-    preloader.style.opacity = '0';
-    setTimeout(() => {
-      preloader.style.display = 'none';
-    }, 500);
+  hidePreloader() {
+    const preloader = document.getElementById('preloader');
+    if (preloader) {
+      preloader.style.opacity = '0';
+      setTimeout(() => {
+        preloader.style.display = 'none';
+      }, 500);
+    }
   }
-}
 
-// Добавляем метод для показа ошибок
-showError(message) {
-  const errorDiv = document.createElement('div');
-  errorDiv.style.cssText = `
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(231, 76, 60, 0.95);
-    color: white;
-    padding: 20px;
-    border-radius: 10px;
-    z-index: 9999;
-    text-align: center;
-    max-width: 80%;
-  `;
-  errorDiv.innerHTML = `
-    <h3>❌ Ошибка</h3>
-    <p>${message}</p>
-    <button onclick="location.reload()" style="
-      background: white;
-      color: #e74c3c;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 5px;
-      margin-top: 10px;
-      cursor: pointer;
-    ">Обновить страницу</button>
-  `;
-  document.body.appendChild(errorDiv);
-}
-  // Добавляем тестовые предметы (для демонстрации)
+  showError(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(231, 76, 60, 0.95);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      z-index: 9999;
+      text-align: center;
+      max-width: 80%;
+    `;
+    errorDiv.innerHTML = `
+      <h3>❌ Ошибка</h3>
+      <p>${message}</p>
+      <button onclick="location.reload()" style="
+        background: white;
+        color: #e74c3c;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 5px;
+        margin-top: 10px;
+        cursor: pointer;
+      ">Обновить страницу</button>
+    `;
+    document.body.appendChild(errorDiv);
+  }
+
   addTestItems() {
     console.log('📦 Добавляем тестовые предметы...');
     
@@ -129,11 +124,9 @@ showError(message) {
     console.log('✅ Тестовые предметы добавлены');
   }
 
-  // Обновлённый метод updateInventory:
   updateInventory() {
     if (!player || !this.inventorySystem) return;
     
-    // Обновляем характеристики
     const statHp = document.getElementById('stat-hp');
     const statAtk = document.getElementById('stat-atk');
     const statDef = document.getElementById('stat-def');
@@ -147,14 +140,10 @@ showError(message) {
       statCrit.textContent = `${critPercent.toFixed(1)}%`;
     }
     
-    // Обновляем список предметов
     this.renderInventoryItems();
-    
-    // Обновляем экипировку
     this.renderEquipment();
   }
 
-  // Рендер предметов в инвентаре
   renderInventoryItems() {
     const itemsList = document.getElementById('inventory-list');
     if (!itemsList || !this.inventorySystem) return;
@@ -166,7 +155,6 @@ showError(message) {
       return;
     }
     
-    // Сортируем предметы: сначала экипированные, потом по редкости
     const sortedItems = [...this.inventorySystem.items].sort((a, b) => {
       if (a.equipped && !b.equipped) return -1;
       if (!a.equipped && b.equipped) return 1;
@@ -180,16 +168,13 @@ showError(message) {
       itemsList.appendChild(itemEl);
     });
     
-    // Обновляем счетчик предметов
     const itemCount = document.getElementById('item-count');
     if (itemCount) {
       itemCount.textContent = `${this.inventorySystem.items.length}/${this.inventorySystem.maxSlots}`;
     }
   }
 
-  // Создание элемента предмета
   createInventoryItemElement(item) {
-    // Используем импортированную ITEM_RARITY
     const rarity = ITEM_RARITY[item.rarity] || ITEM_RARITY.common;
     
     const itemEl = document.createElement('div');
@@ -219,7 +204,6 @@ showError(message) {
       </div>
     `;
     
-    // Добавляем обработчики событий
     const buttons = itemEl.querySelectorAll('button');
     buttons.forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -232,7 +216,6 @@ showError(message) {
     return itemEl;
   }
 
-  // Форматирование статов предмета
   formatItemStats(stats) {
     let html = '';
     if (stats.hp) html += `<span>❤️ +${stats.hp} HP</span>`;
@@ -242,7 +225,6 @@ showError(message) {
     return html;
   }
 
-  // Форматирование эффекта предмета
   formatItemEffect(effect) {
     switch (effect.type) {
       case 'heal': return `Восстанавливает ${effect.value} HP`;
@@ -251,22 +233,21 @@ showError(message) {
     }
   }
 
-  // Обработка действий с предметами
   handleItemAction(itemId, action) {
     if (!this.inventorySystem) return;
     
     switch (action) {
       case 'equip':
         if (this.inventorySystem.equipItem(itemId)) {
-          this.showMessage('✅ Предмет экипирован');
+          this.showNotification('✅ Успех', 'Предмет экипирован', 'success');
           this.updateInventory();
-          this.updateAllDisplays(); // Обновляем все сцены
+          this.updateAllDisplays();
         }
         break;
         
       case 'unequip':
         if (this.inventorySystem.unequipItem(itemId)) {
-          this.showMessage('📦 Предмет снят');
+          this.showNotification('✅ Успех', 'Предмет снят', 'success');
           this.updateInventory();
           this.updateAllDisplays();
         }
@@ -274,7 +255,7 @@ showError(message) {
         
       case 'use':
         if (this.inventorySystem.useItem(itemId)) {
-          this.showMessage('✨ Предмет использован');
+          this.showNotification('✅ Успех', 'Предмет использован', 'success');
           this.updateInventory();
           this.updateAllDisplays();
         }
@@ -284,7 +265,7 @@ showError(message) {
         const item = this.inventorySystem.getItem(itemId);
         if (item && confirm(`Продать "${item.name}" за ${Math.floor(item.value * 0.5)} золота?`)) {
           if (this.inventorySystem.sellItem(itemId)) {
-            this.showMessage(`💰 Продано за ${Math.floor(item.value * 0.5)} золота`);
+            this.showNotification('✅ Успех', `Продано за ${Math.floor(item.value * 0.5)} золота`, 'success');
             this.updateInventory();
             this.updateAllDisplays();
           }
@@ -293,7 +274,6 @@ showError(message) {
     }
   }
 
-  // Рендер экипировки
   renderEquipment() {
     if (!this.inventorySystem) return;
     
@@ -320,7 +300,6 @@ showError(message) {
             </div>
           `;
           
-          // Обработчик кнопки снятия
           const unequipBtn = slotElement.querySelector('.btn-unequip-slot');
           if (unequipBtn) {
             unequipBtn.addEventListener('click', (e) => {
@@ -339,7 +318,6 @@ showError(message) {
     });
   }
 
-  // Вспомогательные функции для слотов
   getSlotIcon(slotType) {
     const icons = {
       weapon: '🗡️',
@@ -364,79 +342,57 @@ showError(message) {
     return names[slotType] || 'Слот';
   }
 
-  // Сообщение для пользователя
-  showMessage(text) {
-    const messageEl = document.createElement('div');
-    messageEl.className = 'game-message';
-    messageEl.textContent = text;
-    messageEl.style.cssText = `
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0, 0, 0, 0.9);
-      color: white;
-      padding: 15px 25px;
-      border-radius: 10px;
-      z-index: 1000;
-      animation: fadeInOut 2s ease-in-out;
-    `;
+  showScene(sceneName) {
+    Object.values(this.scenes).forEach(scene => {
+      scene.classList.remove('active');
+    });
     
-    document.body.appendChild(messageEl);
-    
-    setTimeout(() => {
-      messageEl.remove();
-    }, 2000);
+    if (this.scenes[sceneName]) {
+      this.scenes[sceneName].classList.add('active');
+      this.currentScene = sceneName;
+      
+      this.updateScene(sceneName);
+      
+      console.log(`🔄 Переключились на сцену: ${sceneName}`);
+    }
   }
 
-  // Обновлённый метод showScene
-showScene(sceneName) {
-  // Скрываем все сцены
-  Object.values(this.scenes).forEach(scene => {
-    scene.classList.remove('active');
-  });
-  
-  // Показываем выбранную сцену
-  if (this.scenes[sceneName]) {
-    this.scenes[sceneName].classList.add('active');
-    this.currentScene = sceneName;
-    
-    // Обновляем данные на сцене
-    this.updateScene(sceneName);
-    
-    console.log(`🔄 Переключились на сцену: ${sceneName}`);
+  updateScene(sceneName) {
+    switch (sceneName) {
+      case 'menu':
+        this.updateMenu();
+        break;
+      case 'battle':
+        this.updateBattle();
+        break;
+      case 'inventory':
+        this.updateInventory();
+        break;
+      case 'shop':
+        this.updateShop();
+        break;
+      case 'skills':
+        this.updateSkills();
+        break;
+      case 'options':
+        this.updateOptions();
+        break;
+      case 'achievements':
+        this.updateAchievements();
+        break;
+      case 'leaderboard':
+        this.updateLeaderboard();
+        break;
+    }
   }
-}
-
-updateScene(sceneName) {
-  switch (sceneName) {
-    case 'menu':
-      this.updateMenu();
-      break;
-    case 'battle':
-      this.updateBattle();
-      break;
-    case 'inventory':
-      this.updateInventory();
-      break;
-    case 'shop':
-      // При переходе в магазин обновляем его
-      this.updateShop();
-      break;
-    case 'skills':
-      this.updateSkills();
-      break;
-    case 'options':
-      this.updateOptions();
-      break;
-  }
-}
 
   updateAllDisplays() {
     this.updateMenu();
     this.updateBattle();
     this.updateInventory();
-    this.updateShop();
+    if (this.currentScene === 'shop') {
+      this.updateShop();
+    }
   }
 
   updateMenu() {
@@ -457,19 +413,30 @@ updateScene(sceneName) {
       const hpPercent = (player.currentHp / player.maxHp) * 100;
       menuHpBar.style.width = `${hpPercent}%`;
     }
+    
+    // Обновляем быструю статистику
+    const quickAtk = document.getElementById('menu-atk');
+    const quickDef = document.getElementById('menu-def');
+    const quickCrit = document.getElementById('menu-crit');
+    const quickExp = document.getElementById('menu-exp');
+    
+    if (quickAtk) quickAtk.textContent = player.stats.atk;
+    if (quickDef) quickDef.textContent = player.stats.def;
+    if (quickCrit) {
+      const critPercent = (player.stats.crit || 0) * 100;
+      quickCrit.textContent = `${critPercent.toFixed(0)}%`;
+    }
+    if (quickExp) quickExp.textContent = `0/100`;
   }
 
   updateBattle() {
     if (!player) return;
     
-    // Обновляем HUD элементы только если они существуют
     const battleLevel = document.getElementById('battle-level');
     const battleGold = document.getElementById('battle-gold');
     const battleHp = document.getElementById('battle-hp');
     const battleAtk = document.getElementById('battle-atk');
     const battleDef = document.getElementById('battle-def');
-    const battleProgress = document.getElementById('battle-progress');
-    const battleEnemies = document.getElementById('battle-enemies');
     
     if (battleLevel) battleLevel.textContent = player.level;
     if (battleGold) battleGold.textContent = player.gold;
@@ -477,39 +444,8 @@ updateScene(sceneName) {
     if (battleAtk) battleAtk.textContent = player.stats.atk;
     if (battleDef) battleDef.textContent = player.stats.def;
     
-    // Обновляем информацию о классе в HUD битвы
-    this.updateBattleClassInfo();
-    
-    // Обновляем список локаций, только если сцена битвы активна
     if (this.currentScene === 'battle') {
       this.updateLocationList();
-    }
-  }
-
-  updateBattleClassInfo() {
-    const battleHUD = document.querySelector('.battle-hud');
-    if (battleHUD && player) {
-      // Удаляем старую информацию
-      const existingClassInfo = battleHUD.querySelector('.player-class-info');
-      if (existingClassInfo) {
-        existingClassInfo.remove();
-      }
-      
-      // Добавляем новую информацию
-      const classInfo = document.createElement('div');
-      classInfo.className = 'player-class-info';
-      classInfo.innerHTML = `Класс: ${player.classId === 'warrior' ? '⚔️ Воин' : '🗡️ Ассасин'}`;
-      classInfo.style.cssText = `
-        grid-column: span 3;
-        background: rgba(255, 255, 255, 0.05);
-        padding: 5px 10px;
-        border-radius: 5px;
-        margin-top: 5px;
-        font-size: 0.9em;
-        text-align: center;
-        color: ${player.classId === 'warrior' ? '#4cd137' : '#9b59b6'};
-      `;
-      battleHUD.appendChild(classInfo);
     }
   }
 
@@ -519,14 +455,12 @@ updateScene(sceneName) {
     
     locationList.innerHTML = '';
     
-    // Сортируем локации по уровню
     const sortedLocations = Object.entries(LOCATIONS).sort(([, a], [, b]) => a.level - b.level);
     
     for (const [locId, loc] of sortedLocations) {
       const btn = document.createElement('div');
       btn.className = 'location-btn';
       
-      // Проверяем доступность локации
       const isAvailable = player.level >= loc.level;
       const isLocked = !isAvailable;
       
@@ -536,7 +470,6 @@ updateScene(sceneName) {
         btn.style.filter = 'grayscale(0.5)';
       }
       
-      // Определяем иконку локации
       let icon = '📍';
       if (loc.name.includes('Завод')) icon = '🏭';
       if (loc.name.includes('Лес')) icon = '🌲';
@@ -559,14 +492,12 @@ updateScene(sceneName) {
       if (isAvailable) {
         btn.onclick = () => {
           console.log(`🎮 Выбрана локация: ${loc.name}`);
-          // Переключаемся на игровой интерфейс
           const locationSelection = document.getElementById('location-selection');
           const battleGame = document.getElementById('battle-game');
           
           if (locationSelection) locationSelection.style.display = 'none';
           if (battleGame) battleGame.style.display = 'block';
           
-          // Запускаем битву
           startBattle(locId);
         };
       }
@@ -575,39 +506,315 @@ updateScene(sceneName) {
     }
   }
 
-updateShop() {
-  if (!player || !this.shopSystem) {
-    console.warn('⚠️ Магазин не готов:', { player: !!player, shopSystem: !!this.shopSystem });
-    return;
+  updateShop() {
+    if (!player || !this.shopSystem) {
+      console.warn('⚠️ Магазин не готов:', { player: !!player, shopSystem: !!this.shopSystem });
+      return;
+    }
+    
+    console.log('🛒 Обновление магазина...');
+    
+    const shopGold = document.getElementById('shop-gold');
+    if (shopGold) {
+      shopGold.textContent = player.gold;
+    }
+    
+    const shopGems = document.getElementById('shop-gems');
+    if (shopGems) {
+      shopGems.textContent = player.gems || 0;
+    }
+    
+    this.initializeShopTabs();
+    this.fillShopCategories();
+    this.updateShopRefreshInfo();
+    
+    console.log('🛒 Магазин обновлен');
   }
-  
-  console.log('🛒 Обновление магазина...');
-  
-  // Обновляем баланс
-  const shopGold = document.getElementById('shop-gold');
-  if (shopGold) {
-    shopGold.textContent = player.gold;
-  }
-  
-  const shopGems = document.getElementById('shop-gems');
-  if (shopGems) {
-    shopGems.textContent = player.gems || 0;
-  }
-  
-  // Инициализируем вкладки магазина
-  this.initializeShopTabs();
-  
-  // Заполняем товары по категориям
-  this.fillShopCategories();
-  
-  // Обновляем информацию об обновлении
-  this.updateShopRefreshInfo();
-  
-  console.log('🛒 Магазин обновлен');
-}
 
+  initializeShopTabs() {
+    if (!this.shopSystem) return;
+    
+    const tabsContainer = document.querySelector('.shop-tabs');
+    if (!tabsContainer) {
+      console.error('Контейнер вкладок магазина не найден');
+      return;
+    }
+    
+    console.log('Инициализация вкладок магазина...');
+    
+    tabsContainer.innerHTML = '';
+    
+    const categories = this.shopSystem.getCategories();
+    const categoryInfo = {
+      weapons: { name: '⚔️ Оружие', icon: '🗡️' },
+      armor: { name: '🛡️ Броня', icon: '🛡️' },
+      potions: { name: '🧪 Зелья', icon: '🧪' },
+      special: { name: '✨ Особые', icon: '✨' },
+      materials: { name: '⛏️ Материалы', icon: '⛏️' }
+    };
+    
+    categories.forEach(category => {
+      const info = categoryInfo[category] || { name: category, icon: '📦' };
+      const tab = document.createElement('button');
+      tab.className = 'shop-tab';
+      tab.dataset.category = category;
+      tab.innerHTML = `
+        <span class="tab-icon">${info.icon}</span>
+        <span class="tab-name">${info.name}</span>
+      `;
+      
+      if (category === this.shopSystem.currentCategory) {
+        tab.classList.add('active');
+      }
+      
+      tab.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.switchShopCategory(category);
+      });
+      
+      tabsContainer.appendChild(tab);
+    });
+    
+    console.log('Вкладки созданы:', categories);
+  }
 
-  // Метод для тестирования магазина
+  switchShopCategory(category) {
+    if (!this.shopSystem) return;
+    
+    console.log('Переключение на категорию:', category);
+    
+    this.shopSystem.setCurrentCategory(category);
+    
+    document.querySelectorAll('.shop-tab').forEach(tab => {
+      tab.classList.remove('active');
+    });
+    
+    const activeTab = document.querySelector(`.shop-tab[data-category="${category}"]`);
+    if (activeTab) {
+      activeTab.classList.add('active');
+    }
+    
+    document.querySelectorAll('.shop-category').forEach(cat => {
+      cat.classList.remove('active');
+    });
+    
+    const activeCategory = document.getElementById(`shop-${category}`);
+    if (activeCategory) {
+      activeCategory.classList.add('active');
+    }
+    
+    this.fillShopCategory(category);
+  }
+
+  fillShopCategories() {
+    if (!this.shopSystem) return;
+    
+    console.log('Заполнение категорий товарами...');
+    
+    const categories = this.shopSystem.getCategories();
+    
+    categories.forEach(category => {
+      this.fillShopCategory(category);
+    });
+    
+    this.switchShopCategory(this.shopSystem.currentCategory);
+  }
+
+  fillShopCategory(category) {
+    const container = document.getElementById(`shop-${category}`);
+    if (!container) {
+      console.warn(`Контейнер для категории ${category} не найден`);
+      return;
+    }
+    
+    container.innerHTML = '';
+    
+    const items = this.shopSystem.getCategoryItems(category);
+    
+    console.log(`Категория ${category}: ${items.length} товаров`);
+    
+    if (items.length === 0) {
+      container.innerHTML = `
+        <div class="shop-empty">
+          <div class="empty-icon">🛒</div>
+          <div class="empty-text">Товары в этой категории закончились</div>
+          <div class="empty-hint">Обновите магазин или выберите другую категорию</div>
+        </div>
+      `;
+      return;
+    }
+    
+    items.forEach(item => {
+      const itemElement = this.createShopItemElement(item, category);
+      container.appendChild(itemElement);
+    });
+  }
+
+  createShopItemElement(item, category) {
+    const rarity = ITEM_RARITY[item.rarity] || ITEM_RARITY.common;
+    const canBuy = player.gold >= item.shopPrice;
+    const meetsLevel = !item.levelRequirement || player.level >= item.levelRequirement;
+    
+    const itemElement = document.createElement('div');
+    itemElement.className = `shop-item ${item.isSpecial ? 'special-item' : ''}`;
+    itemElement.dataset.itemId = item.id;
+    itemElement.style.borderColor = rarity.color;
+    
+    let statsHTML = '';
+    if (item.stats) {
+      statsHTML = Object.entries(item.stats)
+        .map(([stat, value]) => {
+          let icon = '📊';
+          if (stat === 'hp') icon = '❤️';
+          if (stat === 'atk') icon = '⚔️';
+          if (stat === 'def') icon = '🛡️';
+          if (stat === 'crit') icon = '🎯';
+          return `<span class="stat-item">${icon} ${stat}: ${value}</span>`;
+        })
+        .join('');
+    }
+    
+    let effectHTML = '';
+    if (item.effect) {
+      effectHTML = `
+        <div class="shop-item-effect">
+          <span class="effect-label">Эффект:</span>
+          <span class="effect-value">${this.formatItemEffect(item.effect)}</span>
+        </div>
+      `;
+    }
+    
+    itemElement.innerHTML = `
+      <div class="shop-item-header">
+        <div class="shop-item-icon">${item.icon}</div>
+        <div class="shop-item-info">
+          <div class="shop-item-name" style="color: ${rarity.color}">
+            ${item.name} ${item.isSpecial ? '⭐' : ''}
+          </div>
+          <div class="shop-item-rarity">${rarity.name}</div>
+          ${item.levelRequirement ? 
+            `<div class="shop-item-level ${meetsLevel ? 'level-met' : 'level-locked'}">
+              📊 Ур. ${item.levelRequirement}
+            </div>` : ''
+          }
+        </div>
+        <div class="shop-item-price">
+          <div class="price-icon">💰</div>
+          <div class="price-value">${item.shopPrice}</div>
+        </div>
+      </div>
+      
+      <div class="shop-item-description">
+        ${item.description}
+      </div>
+      
+      ${statsHTML ? `<div class="shop-item-stats">${statsHTML}</div>` : ''}
+      
+      ${effectHTML}
+      
+      <div class="shop-item-footer">
+        <div class="shop-item-stock">
+          Осталось: <span class="stock-count">${item.stock}</span> шт.
+        </div>
+        <button class="btn-buy ${canBuy && meetsLevel ? '' : 'disabled'}" 
+                data-item-id="${item.id}" 
+                data-category="${category}">
+          ${canBuy ? (meetsLevel ? 'Купить' : 'Недоступно') : 'Не хватает золота'}
+        </button>
+      </div>
+    `;
+    
+    const buyButton = itemElement.querySelector('.btn-buy');
+    if (buyButton && canBuy && meetsLevel) {
+      buyButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.handleShopItemPurchase(item.id, category);
+      });
+    } else if (buyButton) {
+      buyButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        let message = 'Нельзя купить';
+        if (!canBuy) message = 'Недостаточно золота';
+        if (!meetsLevel) message = `Требуется уровень ${item.levelRequirement}`;
+        
+        this.showNotification('❌ Ошибка', message, 'error');
+      });
+    }
+    
+    return itemElement;
+  }
+
+  handleShopItemPurchase(itemId, category) {
+    if (!this.shopSystem) return;
+    
+    console.log('Покупка товара:', itemId, category);
+    
+    const result = this.shopSystem.buyItem(itemId, category);
+    
+    if (result.success) {
+      this.showNotification('✅ Успех', result.message, 'success');
+      
+      this.updateShop();
+      this.updateMenu();
+      this.updateBattle();
+      this.updateInventory();
+    } else {
+      this.showNotification('❌ Ошибка', result.message, 'error');
+    }
+  }
+
+  updateShopRefreshInfo() {
+    if (!this.shopSystem) return;
+    
+    const refreshInfo = this.shopSystem.getRefreshInfo();
+    const refreshElement = document.getElementById('shop-refresh-info');
+    const refreshButton = document.getElementById('btn-shop-refresh');
+    
+    if (refreshElement) {
+      refreshElement.textContent = refreshInfo.timeInfo.text;
+      refreshElement.classList.toggle('refresh-available', refreshInfo.timeInfo.expired);
+    }
+    
+    if (refreshButton) {
+      refreshButton.textContent = `🔄 Обновить (${this.shopSystem.refreshCost} золота)`;
+      refreshButton.disabled = !refreshInfo.canRefresh;
+      refreshButton.classList.toggle('disabled', !refreshInfo.canRefresh);
+      
+      refreshButton.onclick = null;
+      refreshButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        const result = this.shopSystem.refreshShop();
+        if (result.success) {
+          this.showNotification('✅ Успех', result.message, 'success');
+          this.updateShop();
+          this.updateMenu();
+          this.updateBattle();
+        } else {
+          this.showNotification('❌ Ошибка', result.message, 'error');
+        }
+      });
+    }
+  }
+
+  updateSkills() {
+    // TODO: Реализовать логику навыков
+  }
+
+  updateOptions() {
+    // TODO: Реализовать логику настроек
+  }
+
+  updateAchievements() {
+    // TODO: Реализовать логику достижений
+  }
+
+  updateLeaderboard() {
+    // TODO: Реализовать логику таблицы лидеров
+  }
+
   testShop() {
     console.log('🧪 Тестирование магазина...');
     
@@ -616,7 +823,6 @@ updateShop() {
       console.log('📊 Категории:', this.shopSystem.getCategories());
       console.log('💰 Баланс игрока:', player.gold);
       
-      // Показываем доступные товары в оружии
       const weapons = this.shopSystem.getCategoryItems('weapons');
       console.log(`⚔️ Товаров в оружии: ${weapons.length}`);
       
@@ -628,357 +834,27 @@ updateShop() {
     }
   }
 
-
-  updateSkills() {
-    // TODO: Добавить логику навыков
-  }
-
-  updateOptions() {
-    // TODO: Добавить логику настроек
-  }
-
-
-  
-  getShopCategoryInfo(category) {
-  const categories = {
-    weapons: { name: '⚔️ Оружие', icon: '🗡️', description: 'Различные виды оружия' },
-    armor: { name: '🛡️ Броня', icon: '🛡️', description: 'Защитная экипировка' },
-    potions: { name: '🧪 Зелья', icon: '🧪', description: 'Расходуемые предметы' },
-    special: { name: '✨ Особые', icon: '✨', description: 'Уникальные предметы' },
-    materials: { name: '⛏️ Материалы', icon: '⛏️', description: 'Ресурсы для крафта' }
-  };
-  
-  return categories[category];
-}
- 
-initializeShopTabs() {
-  if (!this.shopSystem) return;
-  
-  const tabsContainer = document.querySelector('.shop-tabs');
-  if (!tabsContainer) {
-    console.error('Контейнер вкладок магазина не найден');
-    return;
-  }
-  
-  console.log('Инициализация вкладок магазина...');
-  
-  // Очищаем вкладки
-  tabsContainer.innerHTML = '';
-  
-  // Создаем вкладки для каждой категории
-  const categories = this.shopSystem.getCategories();
-  const categoryInfo = {
-    weapons: { name: '⚔️ Оружие', icon: '🗡️' },
-    armor: { name: '🛡️ Броня', icon: '🛡️' },
-    potions: { name: '🧪 Зелья', icon: '🧪' },
-    special: { name: '✨ Особые', icon: '✨' },
-    materials: { name: '⛏️ Материалы', icon: '⛏️' }
-  };
-  
-  categories.forEach(category => {
-    const info = categoryInfo[category] || { name: category, icon: '📦' };
-    const tab = document.createElement('button');
-    tab.className = 'shop-tab';
-    tab.dataset.category = category;
-    tab.innerHTML = `
-      <span class="tab-icon">${info.icon}</span>
-      <span class="tab-name">${info.name}</span>
-    `;
-    
-    // Делаем активной текущую категорию
-    if (category === this.shopSystem.currentCategory) {
-      tab.classList.add('active');
-    }
-    
-    // Добавляем обработчик клика
-    tab.addEventListener('click', (e) => {
-      e.preventDefault();
-      this.switchShopCategory(category);
-    });
-    
-    tabsContainer.appendChild(tab);
-  });
-  
-  console.log('Вкладки созданы:', categories);
-}
-
-fillShopCategories() {
-  if (!this.shopSystem) return;
-  
-  console.log('Заполнение категорий товарами...');
-  
-  // Для каждой категории заполняем соответствующий контейнер
-  const categories = this.shopSystem.getCategories();
-  
-  categories.forEach(category => {
-    this.fillShopCategory(category);
-  });
-  
-  // Показываем активную категорию
-  this.switchShopCategory(this.shopSystem.currentCategory);
-}
-
-fillShopCategory(category) {
-  const container = document.getElementById(`shop-${category}`);
-  if (!container) {
-    console.warn(`Контейнер для категории ${category} не найден`);
-    return;
-  }
-  
-  // Очищаем контейнер
-  container.innerHTML = '';
-  
-  // Получаем товары для этой категории
-  const items = this.shopSystem.getCategoryItems(category);
-  
-  console.log(`Категория ${category}: ${items.length} товаров`);
-  
-  if (items.length === 0) {
-    container.innerHTML = `
-      <div class="shop-empty">
-        <div class="empty-icon">🛒</div>
-        <div class="empty-text">Товары в этой категории закончились</div>
-        <div class="empty-hint">Обновите магазин или выберите другую категорию</div>
-      </div>
-    `;
-    return;
-  }
-  
-  // Добавляем товары в контейнер
-  items.forEach(item => {
-    const itemElement = this.createShopItemElement(item, category);
-    container.appendChild(itemElement);
-  });
-}
-
-createShopItemElement(item, category) {
-  const rarity = ITEM_RARITY[item.rarity] || ITEM_RARITY.common;
-  const canBuy = player.gold >= item.shopPrice;
-  const meetsLevel = !item.levelRequirement || player.level >= item.levelRequirement;
-  
-  const itemElement = document.createElement('div');
-  itemElement.className = `shop-item ${item.isSpecial ? 'special-item' : ''}`;
-  itemElement.dataset.itemId = item.id;
-  itemElement.style.borderColor = rarity.color;
-  
-  // Форматируем статы
-  let statsHTML = '';
-  if (item.stats) {
-    statsHTML = Object.entries(item.stats)
-      .map(([stat, value]) => {
-        let icon = '📊';
-        if (stat === 'hp') icon = '❤️';
-        if (stat === 'atk') icon = '⚔️';
-        if (stat === 'def') icon = '🛡️';
-        if (stat === 'crit') icon = '🎯';
-        return `<span class="stat-item">${icon} ${stat}: ${value}</span>`;
-      })
-      .join('');
-  }
-  
-  // Форматируем эффект
-  let effectHTML = '';
-  if (item.effect) {
-    effectHTML = `
-      <div class="shop-item-effect">
-        <span class="effect-label">Эффект:</span>
-        <span class="effect-value">${this.formatItemEffect(item.effect)}</span>
-      </div>
-    `;
-  }
-  
-  itemElement.innerHTML = `
-    <div class="shop-item-header">
-      <div class="shop-item-icon">${item.icon}</div>
-      <div class="shop-item-info">
-        <div class="shop-item-name" style="color: ${rarity.color}">
-          ${item.name} ${item.isSpecial ? '⭐' : ''}
-        </div>
-        <div class="shop-item-rarity">${rarity.name}</div>
-        ${item.levelRequirement ? 
-          `<div class="shop-item-level ${meetsLevel ? 'level-met' : 'level-locked'}">
-            📊 Ур. ${item.levelRequirement}
-          </div>` : ''
-        }
-      </div>
-      <div class="shop-item-price">
-        <div class="price-icon">💰</div>
-        <div class="price-value">${item.shopPrice}</div>
-      </div>
-    </div>
-    
-    <div class="shop-item-description">
-      ${item.description}
-    </div>
-    
-    ${statsHTML ? `<div class="shop-item-stats">${statsHTML}</div>` : ''}
-    
-    ${effectHTML}
-    
-    <div class="shop-item-footer">
-      <div class="shop-item-stock">
-        Осталось: <span class="stock-count">${item.stock}</span> шт.
-      </div>
-      <button class="btn-buy ${canBuy && meetsLevel ? '' : 'disabled'}" 
-              data-item-id="${item.id}" 
-              data-category="${category}">
-        ${canBuy ? (meetsLevel ? 'Купить' : 'Недоступно') : 'Не хватает золота'}
-      </button>
-    </div>
-  `;
-  
-  // Добавляем обработчик покупки
-  const buyButton = itemElement.querySelector('.btn-buy');
-  if (buyButton && canBuy && meetsLevel) {
-    buyButton.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      this.handleShopItemPurchase(item.id, category);
-    });
-  } else if (buyButton) {
-    buyButton.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      let message = 'Нельзя купить';
-      if (!canBuy) message = 'Недостаточно золота';
-      if (!meetsLevel) message = `Требуется уровень ${item.levelRequirement}`;
-      
-      this.showNotification('❌ Ошибка', message, 'error');
-    });
-  }
-  
-  return itemElement;
-}
-
-formatItemEffect(effect) {
-  switch (effect.type) {
-    case 'heal':
-      return `Восстанавливает ${effect.value} HP`;
-    case 'buff':
-      const durationMinutes = Math.floor(effect.duration / 60);
-      return `+${effect.value} к ${effect.stat} (${durationMinutes} мин)`;
-    default:
-      return effect.type;
-  }
-}
-  showNotification(title, message, type = 'info') {
-  console.log(`${type}: ${title} - ${message}`);
-  
-  // Используем существующую функцию или создаем простую
-  if (window.showNotification) {
-    window.showNotification(title, message, type);
-  } else {
-    // Простая реализация уведомления
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.innerHTML = `
-      <div class="notification-icon">${
-        type === 'success' ? '✅' : 
-        type === 'error' ? '❌' : 
-        type === 'warning' ? '⚠️' : 'ℹ️'
-      }</div>
-      <div class="notification-content">
-        <div class="notification-title">${title}</div>
-        <div class="notification-message">${message}</div>
-      </div>
-    `;
-    
-    const container = document.getElementById('notifications');
-    if (container) {
-      container.appendChild(notification);
-      
-      // Автоудаление через 5 секунд
-      setTimeout(() => {
-        notification.style.opacity = '0';
-        notification.style.transform = 'translateX(100%)';
-        setTimeout(() => notification.remove(), 300);
-      }, 5000);
-    }
-  }
-}
-handleShopItemPurchase(itemId, category) {
-  if (!this.shopSystem) return;
-  
-  console.log('Покупка товара:', itemId, category);
-  
-  const result = this.shopSystem.buyItem(itemId, category);
-  
-  if (result.success) {
-    this.showNotification('✅ Успех', result.message, 'success');
-    
-    // Обновляем магазин
-    this.updateShop();
-    
-    // Обновляем остальные сцены
-    this.updateMenu();
-    this.updateBattle();
-    this.updateInventory();
-  } else {
-    this.showNotification('❌ Ошибка', result.message, 'error');
-  }
-}
-
-
-updateShopRefreshInfo() {
-  if (!this.shopSystem) return;
-  
-  const refreshInfo = this.shopSystem.getRefreshInfo();
-  const refreshElement = document.getElementById('shop-refresh-info');
-  const refreshButton = document.getElementById('btn-shop-refresh');
-  
-  if (refreshElement) {
-    refreshElement.textContent = refreshInfo.timeInfo.text;
-    refreshElement.classList.toggle('refresh-available', refreshInfo.timeInfo.expired);
-  }
-  
-  if (refreshButton) {
-    refreshButton.textContent = `🔄 Обновить (${this.shopSystem.refreshCost} золота)`;
-    refreshButton.disabled = !refreshInfo.canRefresh;
-    refreshButton.classList.toggle('disabled', !refreshInfo.canRefresh);
-    
-    // Удаляем старый обработчик и добавляем новый
-    refreshButton.onclick = null;
-    refreshButton.addEventListener('click', (e) => {
-      e.preventDefault();
-      const result = this.shopSystem.refreshShop();
-      if (result.success) {
-        this.showNotification('✅ Успех', result.message, 'success');
-        this.updateShop();
-        this.updateMenu();
-        this.updateBattle();
-      } else {
-        this.showNotification('❌ Ошибка', result.message, 'error');
-      }
-    });
-  }
-}
-
-  
-
   initEventListeners() {
     console.log('🎮 Инициализация обработчиков событий...');
     
-    // Кнопки перехода по сценам (обработчик делегирования)
     document.addEventListener('click', (e) => {
       const target = e.target;
       
-      // Обработка кнопок с data-scene
       if (target.closest('[data-scene]')) {
         e.preventDefault();
         const targetScene = target.closest('[data-scene]').getAttribute('data-scene');
         this.showScene(targetScene);
       }
       
-      // Обработка кнопок меню
       if (target.closest('.menu-btn')) {
         e.preventDefault();
         const targetScene = target.closest('.menu-btn').getAttribute('data-scene');
-        this.showScene(targetScene);
+        if (targetScene) {
+          this.showScene(targetScene);
+        }
       }
     });
 
-    // Кнопка отладки (проверяем существование)
     const debugBtn = document.getElementById('btn-debug');
     if (debugBtn) {
       debugBtn.addEventListener('click', () => {
@@ -987,7 +863,6 @@ updateShopRefreshInfo() {
       });
     }
 
-    // Настройки звука (проверяем существование)
     const musicVolume = document.getElementById('music-volume');
     const sfxVolume = document.getElementById('sfx-volume');
     
@@ -1003,7 +878,6 @@ updateShopRefreshInfo() {
       });
     }
 
-    // Очистка сохранений (проверяем существование)
     const clearSaveBtn = document.getElementById('btn-clear-save');
     if (clearSaveBtn) {
       clearSaveBtn.addEventListener('click', () => {
@@ -1017,7 +891,6 @@ updateShopRefreshInfo() {
       });
     }
 
-    // Вкладки магазина (делегирование)
     document.addEventListener('click', (e) => {
       const target = e.target;
       
@@ -1025,17 +898,14 @@ updateShopRefreshInfo() {
         const tab = target.closest('.shop-tab');
         const tabId = tab.getAttribute('data-tab');
         
-        // Деактивируем все вкладки
         document.querySelectorAll('.shop-tab').forEach(t => {
           t.classList.remove('active');
         });
         
-        // Скрываем все категории
         document.querySelectorAll('.shop-category').forEach(cat => {
           cat.classList.remove('active');
         });
         
-        // Активируем выбранную
         tab.classList.add('active');
         const category = document.getElementById(`shop-${tabId}`);
         if (category) {
@@ -1044,7 +914,6 @@ updateShopRefreshInfo() {
       }
     });
 
-    // Экспорт/импорт сохранений
     const exportBtn = document.getElementById('btn-export-save');
     const importBtn = document.getElementById('btn-import-save');
     
@@ -1088,14 +957,51 @@ updateShopRefreshInfo() {
       });
     }
 
-    // Автосохранение при закрытии
     window.addEventListener('beforeunload', () => {
       if (player) {
         savePlayer(player);
       }
     });
 
+    // Кнопка быстрого путешествия
+    const quickBattleBtn = document.getElementById('btn-quick-battle');
+    if (quickBattleBtn) {
+      quickBattleBtn.addEventListener('click', () => {
+        console.log('⚡ Быстрое путешествие');
+        this.showScene('battle');
+      });
+    }
+
+    // Кнопка ежедневных наград
+    const dailyRewardsBtn = document.getElementById('btn-daily-rewards');
+    if (dailyRewardsBtn) {
+      dailyRewardsBtn.addEventListener('click', () => {
+        console.log('🎁 Ежедневные награды');
+        this.showDailyRewardsModal();
+      });
+    }
+
     console.log('✅ Обработчики событий инициализированы');
+  }
+
+  showDailyRewardsModal() {
+    const modal = document.getElementById('daily-rewards');
+    if (modal) {
+      modal.classList.add('active');
+      
+      const closeBtn = modal.querySelector('.modal-close');
+      if (closeBtn) {
+        closeBtn.onclick = () => {
+          modal.classList.remove('active');
+        };
+      }
+      
+      document.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.remove('active');
+        }
+      });
+    }
   }
 
   initializeNotifications() {
@@ -1115,13 +1021,45 @@ updateShopRefreshInfo() {
       
       container.appendChild(notification);
       
-      // Автоудаление
       setTimeout(() => {
         notification.style.opacity = '0';
         notification.style.transform = 'translateX(100%)';
         setTimeout(() => notification.remove(), 300);
       }, duration);
     };
+  }
+
+  showNotification(title, message, type = 'info') {
+    console.log(`${type}: ${title} - ${message}`);
+    
+    if (window.showNotification) {
+      window.showNotification(title, message, type);
+    } else {
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      notification.innerHTML = `
+        <div class="notification-icon">${
+          type === 'success' ? '✅' : 
+          type === 'error' ? '❌' : 
+          type === 'warning' ? '⚠️' : 'ℹ️'
+        }</div>
+        <div class="notification-content">
+          <div class="notification-title">${title}</div>
+          <div class="notification-message">${message}</div>
+        </div>
+      `;
+      
+      const container = document.getElementById('notifications');
+      if (container) {
+        container.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.style.opacity = '0';
+          notification.style.transform = 'translateX(100%)';
+          setTimeout(() => notification.remove(), 300);
+        }, 5000);
+      }
+    }
   }
 
   getNotificationIcon(type) {
@@ -1143,18 +1081,15 @@ updateShopRefreshInfo() {
   }
 }
 
-// Инициализация Telegram
 function initTelegram() {
   if (window.Telegram?.WebApp) {
     console.log('📱 Telegram WebApp доступен');
     Telegram.WebApp.ready();
     Telegram.WebApp.expand();
     
-    // Настройка интерфейса
     Telegram.WebApp.setHeaderColor('#2d4059');
     Telegram.WebApp.setBackgroundColor('#1a1a2e');
     
-    // Включаем кнопку назад в Telegram
     if (Telegram.WebApp.BackButton) {
       Telegram.WebApp.BackButton.onClick(() => {
         window.history.back();
@@ -1168,15 +1103,12 @@ function initTelegram() {
   }
 }
 
-// Запуск игры
 document.addEventListener('DOMContentLoaded', () => {
   console.log('📄 DOM загружен');
   initTelegram();
   
-  // Запускаем SceneManager
   window.sceneManager = new SceneManager();
   
-  // Для отладки - доступ из консоли
   window.game = {
     player,
     scenes: window.sceneManager,
@@ -1188,8 +1120,6 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log('🎮 Игра запущена!');
 });
 
-
-// Для быстрого теста в консоли браузера можно использовать:
 window.testShop = () => {
   if (window.sceneManager && window.sceneManager.shopSystem) {
     console.log('Магазин работает!');
@@ -1198,10 +1128,3 @@ window.testShop = () => {
     console.log('Баланс игрока:', player.gold);
   }
 };
-// В main.js добавить глобальный обработчик
-window.addEventListener('error', function(e) {
-  console.error('Global error:', e.error);
-  if (window.sceneManager) {
-    window.sceneManager.showError(e.error.message);
-  }
-});
