@@ -403,12 +403,13 @@ class SceneManager {
     const menuClass = document.getElementById('menu-class');
     const menuHp = document.getElementById('menu-hp');
     const menuHpBar = document.getElementById('menu-hp-bar');
+    const menuExp = document.getElementById('menu-exp');
     
     if (menuLevel) menuLevel.textContent = player.level;
     if (menuGold) menuGold.textContent = player.gold;
     if (menuClass) menuClass.textContent = player.classId === 'warrior' ? 'Воин' : 'Ассасин';
     if (menuHp) menuHp.textContent = `${player.currentHp}/${player.maxHp}`;
-    
+    if (menuExp) menuExp.textContent = `${player.exp}/${player.expToNextLevel}`;
     if (menuHpBar) {
       const hpPercent = (player.currentHp / player.maxHp) * 100;
       menuHpBar.style.width = `${hpPercent}%`;
@@ -437,12 +438,16 @@ class SceneManager {
     const battleHp = document.getElementById('battle-hp');
     const battleAtk = document.getElementById('battle-atk');
     const battleDef = document.getElementById('battle-def');
+    const battleExp = document.getElementById('battle-exp');
+
+  
     
     if (battleLevel) battleLevel.textContent = player.level;
     if (battleGold) battleGold.textContent = player.gold;
     if (battleHp) battleHp.textContent = `${player.currentHp}/${player.maxHp}`;
     if (battleAtk) battleAtk.textContent = player.stats.atk;
     if (battleDef) battleDef.textContent = player.stats.def;
+    if (battleExp) battleExp.textContent = `${player.exp}/${player.expToNextLevel}`;
     
     if (this.currentScene === 'battle') {
       this.updateLocationList();
