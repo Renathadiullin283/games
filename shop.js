@@ -11,6 +11,8 @@ export class ShopSystem {
     this.shopItems = this.loadShopItems() || this.generateInitialShop();
     this.shopRefreshTime = this.loadRefreshTime() || Date.now() + (60 * 60 * 1000); // 1 час
     this.refreshCost = 50; // Стоимость обновления магазина
+    // Добавляем счетчик
+    this.nextItemId = 1;
   }
 
   // Загрузка товаров магазина
@@ -21,6 +23,7 @@ export class ShopSystem {
         const data = JSON.parse(saved);
         // Проверяем не истекло ли время обновления
         if (data.expires > Date.now()) {
+          this.nextItemId = data.nextItemId || 1; // Загружаем счетчик
           return data.items;
         }
       }
@@ -36,6 +39,7 @@ export class ShopSystem {
       const data = {
         items: this.shopItems,
         expires: this.shopRefreshTime
+        nextItemId: this.nextItemId // Сохраняем счетчик
       };
       localStorage.setItem('shop_data', JSON.stringify(data));
     } catch (e) {
@@ -153,6 +157,13 @@ generateInitialShop() {
     };
   }
 
+  // Генерация уникального ID
+  generateItemId() {
+    const id = `shop_item_${this.nextItemId}`;
+    this.nextItemId++;
+    return id;
+  }
+  
   // Генерация товаров с учетом уровня игрока
   generateShopItems() {
     const items = {
@@ -260,7 +271,7 @@ generateWeapon(level, rarityChance, index = 0) {  // Добавлен парам
   };
   
   return {
-    id: `shop_weapon_${Date.now()}_${index}`,  // Используем index вместо i
+    id: this.generateItemId(), // Используем нашу функцию
     name: name,
     type: 'weapon',
     weaponType: weaponType,
@@ -331,7 +342,7 @@ generateWeapon(level, rarityChance, index = 0) {  // Добавлен парам
     };
     
     return {
-      id: `shop_armor_${Date.now()}_${index}`,
+      id: this.generateItemId(), 
       name: name,
       type: typeMap[armorType],
       rarity: rarity,
@@ -382,7 +393,7 @@ generateWeapon(level, rarityChance, index = 0) {  // Добавлен парам
     const data = potionData[potionType];
     
     return {
-      id: `shop_potion_${Date.now()}_${index}`,
+      id: this.generateItemId(), 
       name: data.name,
       type: 'potion',
       rarity: 'common',
@@ -414,7 +425,7 @@ generateWeapon(level, rarityChance, index = 0) {  // Добавлен парам
     const levelMultiplier = 1 + (level / 30);
     
     return {
-      id: `shop_material_${Date.now()}_${index}`,
+      id: this.generateItemId(), 
       name: material.name,
       type: 'material',
       rarity: 'common',
@@ -493,7 +504,7 @@ generateWeapon(level, rarityChance, index = 0) {  // Добавлен парам
     };
     
     return {
-      id: `shop_special_${Date.now()}_${index}`,
+      id: this.generateItemId(), 
       name: name,
       type: itemType,
       rarity: rarity,
