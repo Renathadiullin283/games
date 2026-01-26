@@ -581,13 +581,14 @@ updateShop() {
     return;
   }
   
+  console.log('🛒 Обновление магазина...');
+  
   // Обновляем баланс
   const shopGold = document.getElementById('shop-gold');
   if (shopGold) {
     shopGold.textContent = player.gold;
   }
   
-  // Обновляем кристаллы (если будут)
   const shopGems = document.getElementById('shop-gems');
   if (shopGems) {
     shopGems.textContent = player.gems || 0;
@@ -604,6 +605,7 @@ updateShop() {
   
   console.log('🛒 Магазин обновлен');
 }
+
 
   // Метод для тестирования магазина
   testShop() {
@@ -653,7 +655,12 @@ initializeShopTabs() {
   if (!this.shopSystem) return;
   
   const tabsContainer = document.querySelector('.shop-tabs');
-  if (!tabsContainer) return;
+  if (!tabsContainer) {
+    console.error('Контейнер вкладок магазина не найден');
+    return;
+  }
+  
+  console.log('Инициализация вкладок магазина...');
   
   // Очищаем вкладки
   tabsContainer.innerHTML = '';
@@ -683,77 +690,67 @@ initializeShopTabs() {
       tab.classList.add('active');
     }
     
-    tab.addEventListener('click', () => {
-      // Скрываем все категории
-      document.querySelectorAll('.shop-category').forEach(cat => {
-        cat.classList.remove('active');
-      });
-      
-      // Убираем активность со всех вкладок
-      document.querySelectorAll('.shop-tab').forEach(t => {
-        t.classList.remove('active');
-      });
-      
-      // Активируем выбранную вкладку
-      tab.classList.add('active');
-      
-      // Показываем выбранную категорию
-      const categoryElement = document.getElementById(`shop-${category}`);
-      if (categoryElement) {
-        categoryElement.classList.add('active');
-      }
-      
-      // Устанавливаем текущую категорию в системе
-      this.shopSystem.setCurrentCategory(category);
+    // Добавляем обработчик клика
+    tab.addEventListener('click', (e) => {
+      e.preventDefault();
+      this.switchShopCategory(category);
     });
     
     tabsContainer.appendChild(tab);
   });
+  
+  console.log('Вкладки созданы:', categories);
 }
 
 fillShopCategories() {
   if (!this.shopSystem) return;
   
+  console.log('Заполнение категорий товарами...');
+  
   // Для каждой категории заполняем соответствующий контейнер
   const categories = this.shopSystem.getCategories();
   
   categories.forEach(category => {
-    const container = document.getElementById(`shop-${category}`);
-    if (!container) {
-      console.warn(`Контейнер для категории ${category} не найден`);
-      return;
-    }
-    
-    // Очищаем контейнер
-    container.innerHTML = '';
-    
-    // Получаем товары для этой категории
-    const items = this.shopSystem.getCategoryItems(category);
-    
-    if (items.length === 0) {
-      container.innerHTML = `
-        <div class="shop-empty">
-          <div class="empty-icon">🛒</div>
-          <div class="empty-text">Товары в этой категории закончились</div>
-          <div class="empty-hint">Обновите магазин или выберите другую категорию</div>
-        </div>
-      `;
-      return;
-    }
-    
-    // Добавляем товары в контейнер
-    items.forEach(item => {
-      const itemElement = this.createShopItemElement(item, category);
-      container.appendChild(itemElement);
-    });
+    this.fillShopCategory(category);
   });
   
   // Показываем активную категорию
-  const activeCategory = document.getElementById(`shop-${this.shopSystem.currentCategory}`);
-  if (activeCategory) {
-    activeCategory.classList.add('active');
-  }
+  this.switchShopCategory(this.shopSystem.currentCategory);
 }
+
+fillShopCategory(category) {
+  const container = document.getElementById(`shop-${category}`);
+  if (!container) {
+    console.warn(`Контейнер для категории ${category} не найден`);
+    return;
+  }
+  
+  // Очищаем контейнер
+  container.innerHTML = '';
+  
+  // Получаем товары для этой категории
+  const items = this.shopSystem.getCategoryItems(category);
+  
+  console.log(`Категория ${category}: ${items.length} товаров`);
+  
+  if (items.length === 0) {
+    container.innerHTML = `
+      <div class="shop-empty">
+        <div class="empty-icon">🛒</div>
+        <div class="empty-text">Товары в этой категории закончились</div>
+        <div class="empty-hint">Обновите магазин или выберите другую категорию</div>
+      </div>
+    `;
+    return;
+  }
+  
+  // Добавляем товары в контейнер
+  items.forEach(item => {
+    const itemElement = this.createShopItemElement(item, category);
+    container.appendChild(itemElement);
+  });
+}
+
 createShopItemElement(item, category) {
   const rarity = ITEM_RARITY[item.rarity] || ITEM_RARITY.common;
   const canBuy = player.gold >= item.shopPrice;
@@ -833,8 +830,21 @@ createShopItemElement(item, category) {
   // Добавляем обработчик покупки
   const buyButton = itemElement.querySelector('.btn-buy');
   if (buyButton && canBuy && meetsLevel) {
-    buyButton.addEventListener('click', () => {
+    buyButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       this.handleShopItemPurchase(item.id, category);
+    });
+  } else if (buyButton) {
+    buyButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      let message = 'Нельзя купить';
+      if (!canBuy) message = 'Недостаточно золота';
+      if (!meetsLevel) message = `Требуется уровень ${item.levelRequirement}`;
+      
+      this.showNotification('❌ Ошибка', message, 'error');
     });
   }
   
@@ -852,16 +862,54 @@ formatItemEffect(effect) {
       return effect.type;
   }
 }
-
+  showNotification(title, message, type = 'info') {
+  console.log(`${type}: ${title} - ${message}`);
+  
+  // Используем существующую функцию или создаем простую
+  if (window.showNotification) {
+    window.showNotification(title, message, type);
+  } else {
+    // Простая реализация уведомления
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `
+      <div class="notification-icon">${
+        type === 'success' ? '✅' : 
+        type === 'error' ? '❌' : 
+        type === 'warning' ? '⚠️' : 'ℹ️'
+      }</div>
+      <div class="notification-content">
+        <div class="notification-title">${title}</div>
+        <div class="notification-message">${message}</div>
+      </div>
+    `;
+    
+    const container = document.getElementById('notifications');
+    if (container) {
+      container.appendChild(notification);
+      
+      // Автоудаление через 5 секунд
+      setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => notification.remove(), 300);
+      }, 5000);
+    }
+  }
+}
 handleShopItemPurchase(itemId, category) {
   if (!this.shopSystem) return;
+  
+  console.log('Покупка товара:', itemId, category);
   
   const result = this.shopSystem.buyItem(itemId, category);
   
   if (result.success) {
     this.showNotification('✅ Успех', result.message, 'success');
+    
     // Обновляем магазин
     this.updateShop();
+    
     // Обновляем остальные сцены
     this.updateMenu();
     this.updateBattle();
@@ -870,6 +918,7 @@ handleShopItemPurchase(itemId, category) {
     this.showNotification('❌ Ошибка', result.message, 'error');
   }
 }
+
 
 updateShopRefreshInfo() {
   if (!this.shopSystem) return;
@@ -888,8 +937,10 @@ updateShopRefreshInfo() {
     refreshButton.disabled = !refreshInfo.canRefresh;
     refreshButton.classList.toggle('disabled', !refreshInfo.canRefresh);
     
-    // Обновляем обработчик
-    refreshButton.onclick = () => {
+    // Удаляем старый обработчик и добавляем новый
+    refreshButton.onclick = null;
+    refreshButton.addEventListener('click', (e) => {
+      e.preventDefault();
       const result = this.shopSystem.refreshShop();
       if (result.success) {
         this.showNotification('✅ Успех', result.message, 'success');
@@ -899,10 +950,9 @@ updateShopRefreshInfo() {
       } else {
         this.showNotification('❌ Ошибка', result.message, 'error');
       }
-    };
+    });
   }
 }
-
 
   
 
