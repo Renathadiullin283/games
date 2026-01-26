@@ -1,17 +1,18 @@
 // battle.js
 import { player, resetPlayerHp } from './game.js';
 import { LOCATIONS } from './data.js';
+import { ENEMY_TYPES, ENEMY_ABILITIES } from './enemies.js';
+import { ITEMS_DB } from './inventory.js';
 import { savePlayer } from './telegramSave.js';
 import { 
-          clear, 
-          drawStickman, 
-          drawHpBar, 
-          spawnDamageText, 
-          updateDamageTexts, 
-          screenShake, 
-          drawBackground,      // Добавьте эту строку
-          drawLocationElement  // Или эту, если используете
-        } from "./render.js";
+            clear, 
+            drawStickman, 
+            drawHpBar, 
+            spawnDamageText, 
+            updateDamageTexts, 
+            screenShake,
+            drawBackground
+          } from "./render.js";
 
 class BattleSystem {
   constructor() {
@@ -41,15 +42,18 @@ class BattleSystem {
     
     
     // Настройки путешествия
-    this.travelSettings = {
-      baseEnemyInterval: 8000, // 8 секунд между врагами
-      minEnemyInterval: 5000,  // минимум 5 секунд
-      maxEnemyInterval: 12000, // максимум 12 секунд
-      travelSpeed: 1,        // скорость прогресса путешествия (% в секунду)
-      maxLocationProgress: 100, // максимум прогресса локации
-      enemiesPerLocation: 8,     // примерное количество врагов за локацию
-      backgroundSpeed: 12.0      // НОВОЕ: скорость прокрутки фона (было 0.5)         
+      this.travelSettings = {
+      baseEnemyInterval: 7000,
+      minEnemyInterval: 4000,
+      maxEnemyInterval: 10000,
+      travelSpeed: 1.2,
+      maxLocationProgress: 100,
+      enemiesPerLocation: 10,
+      backgroundSpeed: 12.0
     };
+                // Система врагов
+    this.enemyTypes = ENEMY_TYPES;
+    this.enemyAbilities = ENEMY_ABILITIES;
     
     // Настройки умений
     this.skills = {
@@ -403,32 +407,115 @@ returnToLocationSelection() {
     this.isTraveling = false;
     this.isInCombat = true;
     
-    // Создаем врага с учетом текущего индекса
     this.enemyIndex++;
-    this.enemyMaxHp = Math.floor(
-      this.currentLocation.enemyHp * Math.pow(this.currentLocation.hpGrowth || 1.2, this.enemyIndex - 1)
-    );
-    this.enemy = {
-      hp: this.enemyMaxHp,
-      atk: Math.floor(
-        this.currentLocation.enemyAtk * Math.pow(this.currentLocation.atkGrowth || 1.1, this.enemyIndex - 1)
-      ),
-    };
+    
+    // Выбираем тип врага для локации
+    const enemyType = this.selectEnemyTypeForLocation();
+    
+    // Создаем врага с учетом типа и уровня
+    const enemy = this.createEnemy(enemyType, this.enemyIndex);
+    this.enemy = enemy;
+    this.enemyMaxHp = enemy.hp;
     
     // Сброс анимации появления врага
     this.travelAnimation.enemyAppear = 0;
     this.travelAnimation.enemyX = 400;
     
-    this.log(`⚔️ Враг #${this.enemyIndex} появился!`);
-    this.log(`👾 HP: ${this.enemy.hp}, ATK: ${this.enemy.atk}`);
+    this.log(`⚔️ ${enemy.name} появился! (Уровень ${enemy.level})`);
+    this.log(`❤️ HP: ${enemy.hp}, ⚔️ ATK: ${enemy.atk}, 🛡️ DEF: ${enemy.def}`);
     
     // Запускаем боевой цикл
     this.startCombat();
     
-    // Обновляем HUD
     this.updateBattleHUD();
   }
-
+            // Выбор типа врага для текущей локации
+  selectEnemyTypeForLocation() {
+    if (!this.currentLocation || !this.currentLocation.enemyTypes) {
+      // Возвращаем базового врага если типы не определены
+      return 'goblin';
+    }
+    
+    const enemyTypes = this.currentLocation.enemyTypes;
+    let totalWeight = 0;
+    
+    // Считаем общий вес
+    enemyTypes.forEach(type => {
+      totalWeight += type.weight;
+    });
+    
+    // Рандомный выбор с учетом весов
+    let random = Math.random() * totalWeight;
+    let selectedType = 'goblin'; // дефолтный тип
+    
+    for (const type of enemyTypes) {
+      if (random < type.weight) {
+        selectedType = type.type;
+        break;
+      }
+      random -= type.weight;
+    }
+    
+    // Проверяем шанс элитного врага
+    if (Math.random() < (this.currentLocation.eliteChance || 0)) {
+      // Выбираем элитного врага из доступных
+      const eliteTypes = enemyTypes.filter(t => 
+        ['ogre', 'dark_mage', 'dragon_whelp'].includes(t.type)
+      );
+      if (eliteTypes.length > 0) {
+        const eliteType = eliteTypes[Math.floor(Math.random() * eliteTypes.length)];
+        selectedType = eliteType.type;
+        this.log(`⚠️ Появился элитный враг!`);
+      }
+    }
+    
+    // Проверяем шанс босса (только на последних врагах в локации)
+    if (this.enemyIndex >= 5 && Math.random() < (this.currentLocation.bossChance || 0)) {
+      selectedType = 'dragon_whelp';
+      this.log(`🔥 ПОЯВИЛСЯ БОСС!`);
+    }
+    
+    return selectedType;
+  }
+  // Создание врага на основе типа и индекса
+  createEnemy(enemyTypeId, index) {
+    const baseEnemy = this.enemyTypes[enemyTypeId] || this.enemyTypes.goblin;
+    const locationLevel = this.currentLocation.baseLevel || 1;
+    
+    // Расчет характеристик с учетом уровня локации и индекса врага
+    const level = locationLevel + Math.floor(index / 3);
+    const hpGrowth = this.currentLocation.hpGrowth || 1.2;
+    const atkGrowth = this.currentLocation.atkGrowth || 1.1;
+    const defGrowth = this.currentLocation.defGrowth || 1.05;
+    
+    const hp = Math.floor(baseEnemy.baseHp * Math.pow(hpGrowth, index - 1) * (1 + (level - 1) * 0.1));
+    const atk = Math.floor(baseEnemy.baseAtk * Math.pow(atkGrowth, index - 1) * (1 + (level - 1) * 0.08));
+    const def = Math.floor(baseEnemy.baseDef * Math.pow(defGrowth, index - 1) * (1 + (level - 1) * 0.05));
+    const gold = Math.floor(baseEnemy.baseGold * (1 + (level - 1) * 0.15));
+    const exp = Math.floor(baseEnemy.baseExp * (1 + (level - 1) * 0.12));
+    
+    // Выбор способностей врага
+    const abilities = baseEnemy.abilities.map(abilityId => {
+      return this.enemyAbilities[abilityId] || this.enemyAbilities.basic_attack;
+    });
+    
+    return {
+      ...baseEnemy,
+      hp,
+      maxHp: hp,
+      atk,
+      def,
+      gold,
+      exp,
+      level,
+      abilities,
+      currentAbility: 0,
+      type: enemyTypeId,
+      lootTable: baseEnemy.lootTable || [],
+      weakAgainst: baseEnemy.weakAgainst || [],
+      resistantTo: baseEnemy.resistantTo || []
+    };
+  }
   startCombat() {
     if (this.gameInterval) {
       clearInterval(this.gameInterval);
@@ -559,23 +646,105 @@ returnToLocationSelection() {
       return;
     }
     
+    // Выбираем способность врага
+    const ability = this.selectEnemyAbility();
     let damage = Math.max(this.enemy.atk - player.stats.def, 1);
     
-    // Случайный крит врага (10% шанс)
-    if (Math.random() < 0.1) {
-      damage = Math.floor(damage * 2);
+    // Модификатор способности
+    damage = Math.floor(damage * ability.damage);
+    
+    // Критический удар врага (5% шанс)
+    let isCrit = false;
+    if (Math.random() < 0.05) {
+      damage = Math.floor(damage * 1.8);
+      isCrit = true;
       this.log(`💥 Враг нанес критический урон!`);
     }
     
-    player.currentHp -= damage;
-    spawnDamageText(this.ctx, 120, 90, `-${damage}`);
+    // Применяем эффект способности
+    if (ability.effect) {
+      this.applyEnemyAbilityEffect(ability.effect);
+    }
     
-    this.log(`👾 Враг нанес ${damage} урона`);
+    // Наносим урон
+    player.currentHp -= damage;
+    spawnDamageText(this.ctx, 120, 90, `-${damage}`, isCrit);
+    
+    this.log(`👾 ${this.enemy.name} использовал "${ability.name}" и нанес ${damage} урона`);
     
     if (player.currentHp <= 0) {
       this.gameOver();
     } else if (player.currentHp < player.maxHp * 0.3) {
       this.log(`⚠️ Низкое здоровье! ${player.currentHp}/${player.maxHp}`);
+    }
+  }
+    // Выбор способности врага
+  selectEnemyAbility() {
+    if (!this.enemy.abilities || this.enemy.abilities.length === 0) {
+      return this.enemyAbilities.basic_attack;
+    }
+    
+    // Простая логика: цикл по способностям
+    const currentAbility = this.enemy.currentAbility || 0;
+    const ability = this.enemy.abilities[currentAbility];
+    
+    // Переходим к следующей способности
+    this.enemy.currentAbility = (currentAbility + 1) % this.enemy.abilities.length;
+    
+    return ability;
+  }
+  
+  // Применение эффекта способности врага
+  applyEnemyAbilityEffect(effect) {
+    if (!effect) return;
+    
+    switch (effect.type) {
+      case 'poison':
+        this.activeEffects.enemyPoisoned = { 
+          turns: effect.duration, 
+          damage: effect.damage 
+        };
+        this.log(`☠️ Вы отравлены! ${effect.damage} урона в течение ${effect.duration} ходов`);
+        break;
+        
+      case 'bleed':
+        this.activeEffects.bleeding = {
+          turns: effect.duration,
+          damage: effect.damage
+        };
+        this.log(`🩸 Кровотечение! ${effect.damage} урона в течение ${effect.duration} ходов`);
+        break;
+        
+      case 'burn':
+        this.activeEffects.burning = {
+          turns: effect.duration,
+          damage: effect.damage
+        };
+        this.log(`🔥 Вы горите! ${effect.damage} урона в течение ${effect.duration} ходов`);
+        break;
+        
+      case 'stun':
+        this.activeEffects.playerStunned = effect.duration;
+        this.log(`🌀 Вы оглушены на ${effect.duration} ход(ов)`);
+        break;
+        
+      case 'curse':
+        // Временное снижение статов
+        const stat = effect.stat || 'def';
+        const value = effect.value || -5;
+        
+        if (!this.activeEffects.curses) {
+          this.activeEffects.curses = {};
+        }
+        
+        this.activeEffects.curses[stat] = value;
+        this.log(`👻 Проклятие! ${stat} уменьшен на ${Math.abs(value)}`);
+        break;
+        
+      case 'heal':
+        this.enemy.hp = Math.min(this.enemy.hp + effect.value, this.enemy.maxHp);
+        this.log(`💚 ${this.enemy.name} восстановил ${effect.value} HP`);
+        break;
     }
   }
 
@@ -601,14 +770,28 @@ returnToLocationSelection() {
     if (!this.isBattleActive || !this.isInCombat) return;
     
     // Награда за врага
-    const baseGold = 10 + Math.floor(this.enemyIndex / 2);
-    const goldReward = Math.floor(baseGold * (1 + this.currentLocation.level / 10));
+    const goldReward = this.enemy.gold || 10;
+    const expReward = this.enemy.exp || 15;
+    
     player.gold += goldReward;
+    // TODO: Добавить систему опыта
+    // player.exp += expReward;
+    
     this.enemiesDefeated++;
     
-    this.log(`💀 Враг #${this.enemyIndex} побежден!`);
+    this.log(`💀 ${this.enemy.name} побежден!`);
     this.log(`💰 Получено ${goldReward} золота`);
+    this.log(`🌟 Получено ${expReward} опыта`);
     this.log(`🏆 Всего побеждено: ${this.enemiesDefeated} врагов`);
+    
+    // Генерация лута
+    const loot = this.generateLoot();
+    if (loot.length > 0) {
+      loot.forEach(item => {
+        this.log(`🎁 Получен предмет: ${item.name}`);
+        // TODO: Добавить предмет в инвентарь
+      });
+    }
     
     // Обновляем прогресс локации
     this.locationProgress = Math.min(
@@ -625,14 +808,12 @@ returnToLocationSelection() {
       return;
     }
     
-    // Сохраняем прогресс
     savePlayer(player);
     
     // Возвращаемся к путешествию и планируем следующего врага
     this.isTraveling = true;
     this.isInCombat = false;
     
-    // Останавливаем боевые интервалы
     if (this.gameInterval) {
       clearInterval(this.gameInterval);
       this.gameInterval = null;
@@ -641,14 +822,33 @@ returnToLocationSelection() {
     this.log(`🌄 Возвращаемся к путешествию...`);
     this.log(`🗺️ Прогресс локации: ${Math.round(this.locationProgress)}%`);
     
-    // Планируем следующего врага
     setTimeout(() => {
       this.scheduleNextEnemy();
     }, 1000);
     
     this.updateBattleHUD();
   }
-
+  
+  // Генерация лута из таблицы дропа врага
+  generateLoot() {
+    const loot = [];
+    
+    if (!this.enemy.lootTable || this.enemy.lootTable.length === 0) {
+      return loot;
+    }
+    
+    this.enemy.lootTable.forEach(lootItem => {
+      if (Math.random() < lootItem.chance) {
+        // TODO: Получить предмет из ITEMS_DB или MATERIALS
+        loot.push({
+          name: lootItem.item,
+          type: 'material'
+        });
+      }
+    });
+    
+    return loot;
+  }
   endCombat() {
     this.isInCombat = false;
     this.enemy = null;
@@ -664,12 +864,28 @@ returnToLocationSelection() {
     this.log('🏆 Локация полностью исследована!');
     this.log('🎉 Вы получили награду за прохождение!');
     
-    const completionReward = 100 + this.currentLocation.level * 50;
-    player.gold += completionReward;
+    const baseReward = this.currentLocation.rewards || { gold: 100, exp: 200 };
+    const completionReward = {
+      gold: baseReward.gold * this.currentLocation.baseLevel,
+      exp: baseReward.exp * this.currentLocation.baseLevel
+    };
+    
+    player.gold += completionReward.gold;
     player.level += 1;
     
-    this.log(`💰 Дополнительная награда: ${completionReward} золота`);
+    // Улучшение статов при повышении уровня
+    player.stats.hp += 20;
+    player.stats.atk += 5;
+    player.stats.def += 2;
+    player.maxHp = player.stats.hp;
+    player.currentHp = player.maxHp;
+    
+    this.log(`💰 Дополнительная награда: ${completionReward.gold} золота`);
+    this.log(`🌟 Дополнительный опыт: ${completionReward.exp} опыта`);
     this.log(`📈 Уровень повышен: ${player.level}`);
+    this.log(`❤️ Максимальное HP увеличено до ${player.maxHp}`);
+    this.log(`⚔️ Атака увеличена до ${player.stats.atk}`);
+    this.log(`🛡️ Защита увеличена до ${player.stats.def}`);
     
     // Останавливаем всё
     this.stopBattle();
@@ -689,6 +905,7 @@ returnToLocationSelection() {
       }
     }, 5000);
   }
+  
 
   gameOver() {
     this.log('❌ Персонаж погиб');
@@ -1051,7 +1268,9 @@ drawLocationBackground() {
     }
     
     // Игрок
-    const playerColor = player.classId === 'warrior' ? '#4cd137' : '#9b59b6';
+    const playerColor = player.classId === 'warrior' ? '#4cd137' : 
+                       player.classId === 'assassin' ? '#9b59b6' : 
+                       player.classId === 'mage' ? '#3498db' : '#4cd137';
     drawStickman(ctx, 100 + playerOffset, 120, playerColor);
     drawHpBar(ctx, 70, 20, 60, 6, player.currentHp, player.maxHp);
     
@@ -1059,12 +1278,34 @@ drawLocationBackground() {
     if (this.enemy) {
       const enemyX = this.travelAnimation.enemyX;
       
-      // Эффект оглушения
-      const enemyColor = this.activeEffects.enemyStunned > 0 ? '#f39c12' : '#e74c3c';
-      drawStickman(ctx, enemyX, 120, enemyColor);
-      drawHpBar(ctx, enemyX - 30, 20, 60, 6, this.enemy.hp, this.enemyMaxHp);
+      // Цвет врага в зависимости от типа
+      let enemyColor = '#e74c3c'; // дефолтный красный
+      if (this.enemy.type === 'goblin') enemyColor = '#27ae60';
+      if (this.enemy.type === 'wolf') enemyColor = '#7f8c8d';
+      if (this.enemy.type === 'skeleton') enemyColor = '#ecf0f1';
+      if (this.enemy.type === 'robot') enemyColor = '#95a5a6';
+      if (this.enemy.type === 'ogre') enemyColor = '#d35400';
+      if (this.enemy.type === 'dark_mage') enemyColor = '#8e44ad';
+      if (this.enemy.type === 'dragon_whelp') enemyColor = '#e74c3c';
       
-      // Эффект яда
+      // Эффект оглушения
+      if (this.activeEffects.enemyStunned > 0) {
+        enemyColor = '#f39c12';
+      }
+      
+      // Рисуем врага
+      drawStickman(ctx, enemyX, 120, enemyColor);
+      
+      // Рисуем спрайт врага (текст)
+      ctx.fillStyle = '#fff';
+      ctx.font = '24px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(this.enemy.sprite || '👹', enemyX, 90);
+      
+      // HP бар врага
+      drawHpBar(ctx, enemyX - 30, 20, 60, 6, this.enemy.hp, this.enemy.maxHp);
+      
+      // Эффекты на враге
       if (this.activeEffects.enemyPoisoned.turns > 0) {
         ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
         ctx.beginPath();
