@@ -880,3 +880,10 @@ window.testShop = () => {
     console.log('Баланс игрока:', player.gold);
   }
 };
+// В main.js добавить глобальный обработчик
+window.addEventListener('error', function(e) {
+  console.error('Global error:', e.error);
+  if (window.sceneManager) {
+    window.sceneManager.showError(e.error.message);
+  }
+});
