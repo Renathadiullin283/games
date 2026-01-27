@@ -124,106 +124,396 @@ class SceneManager {
     console.log('✅ Тестовые предметы добавлены');
   }
 
-  updateInventory() {
-    if (!player || !this.inventorySystem) return;
-    
-    const statHp = document.getElementById('stat-hp');
-    const statAtk = document.getElementById('stat-atk');
-    const statDef = document.getElementById('stat-def');
-    const statCrit = document.getElementById('stat-crit');
-    
-    if (statHp) statHp.textContent = player.stats.hp;
-    if (statAtk) statAtk.textContent = player.stats.atk;
-    if (statDef) statDef.textContent = player.stats.def;
-    if (statCrit) {
-      const critPercent = (player.stats.crit || 0) * 100;
-      statCrit.textContent = `${critPercent.toFixed(1)}%`;
-    }
-    
-    this.renderInventoryItems();
-    this.renderEquipment();
+updateInventory() {
+  if (!player || !this.inventorySystem) return;
+  
+  // Обновляем информацию о персонаже
+  this.updateCharacterInfo();
+  
+  // Обновляем ячейки экипировки
+  this.updateEquipmentSlots();
+  
+  // Обновляем список предметов
+  this.renderInventoryItems();
+}
+// Обновление информации о персонаже
+updateCharacterInfo() {
+  const levelEl = document.getElementById('inventory-level');
+  const hpEl = document.getElementById('inventory-hp');
+  const atkEl = document.getElementById('inventory-atk');
+  const defEl = document.getElementById('inventory-def');
+  const charIcon = document.getElementById('inventory-character-icon');
+  
+  if (levelEl) levelEl.textContent = player.level;
+  if (hpEl) hpEl.textContent = `${player.currentHp}/${player.maxHp}`;
+  if (atkEl) atkEl.textContent = player.stats.atk;
+  if (defEl) defEl.textContent = player.stats.def;
+  
+  // Устанавливаем иконку класса
+  if (charIcon) {
+    const classIcons = {
+      warrior: '⚔️',
+      assassin: '🗡️',
+      mage: '🔮',
+      archer: '🏹'
+    };
+    charIcon.textContent = classIcons[player.classId] || '👤';
   }
+}
 
-  renderInventoryItems() {
-    const itemsList = document.getElementById('inventory-list');
-    if (!itemsList || !this.inventorySystem) return;
+// Обновление ячеек экипировки
+updateEquipmentSlots() {
+  if (!this.inventorySystem) return;
+  
+  const slotTypes = ['weapon', 'armor', 'helmet', 'boots', 'ring', 'amulet', 'gloves', 'chest'];
+  
+  slotTypes.forEach(slotType => {
+    const slotElement = document.querySelector(`.equipment-slot[data-slot="${slotType}"]`);
+    const slotItemElement = document.getElementById(`slot-${slotType}`);
     
-    itemsList.innerHTML = '';
+    if (!slotElement || !slotItemElement) return;
     
-    if (this.inventorySystem.items.length === 0) {
-      itemsList.innerHTML = '<div class="empty-inventory">Инвентарь пуст</div>';
-      return;
-    }
+    const equippedItem = this.inventorySystem.equipment[slotType];
     
-    const sortedItems = [...this.inventorySystem.items].sort((a, b) => {
-      if (a.equipped && !b.equipped) return -1;
-      if (!a.equipped && b.equipped) return 1;
+    if (equippedItem) {
+      // Если в слоте есть предмет
+      slotElement.classList.add('equipped');
+      slotItemElement.innerHTML = equippedItem.icon;
+      slotItemElement.title = equippedItem.name;
       
-      const rarityOrder = { legendary: 0, epic: 1, rare: 2, uncommon: 3, common: 4 };
-      return rarityOrder[a.rarity] - rarityOrder[b.rarity];
-    });
-    
-    sortedItems.forEach(item => {
-      const itemEl = this.createInventoryItemElement(item);
-      itemsList.appendChild(itemEl);
-    });
-    
-    const itemCount = document.getElementById('item-count');
-    if (itemCount) {
-      itemCount.textContent = `${this.inventorySystem.items.length}/${this.inventorySystem.maxSlots}`;
+      // Добавляем цвет редкости
+      const rarity = ITEM_RARITY[equippedItem.rarity] || ITEM_RARITY.common;
+      slotItemElement.style.color = rarity.color;
+    } else {
+      // Пустой слот
+      slotElement.classList.remove('equipped');
+      slotItemElement.innerHTML = '';
+      slotItemElement.title = '';
     }
-  }
-
-  createInventoryItemElement(item) {
-    const rarity = ITEM_RARITY[item.rarity] || ITEM_RARITY.common;
     
-    const itemEl = document.createElement('div');
-    itemEl.className = `inventory-item ${item.equipped ? 'equipped' : ''}`;
-    itemEl.dataset.itemId = item.id;
-    itemEl.style.borderLeft = `4px solid ${rarity.color}`;
-    
-    itemEl.innerHTML = `
-      <div class="item-icon">${item.icon}</div>
-      <div class="item-info">
-        <div class="item-name" style="color: ${rarity.color}">
-          ${item.name} ${item.equipped ? '✅' : ''}
+    // Добавляем обработчик клика
+    slotElement.onclick = (e) => {
+      e.stopPropagation();
+      this.openEquipmentModal(slotType);
+    };
+  });
+}
+// Открытие модального окна для выбора предмета
+openEquipmentModal(slotType) {
+  const modal = document.getElementById('equipment-select-modal');
+  const modalTitle = document.getElementById('modal-slot-name');
+  const slotInfo = document.getElementById('selected-slot-info');
+  const itemsList = document.getElementById('available-items-list');
+  
+  if (!modal || !modalTitle || !slotInfo || !itemsList) return;
+  
+  // Устанавливаем заголовок
+  const slotName = this.inventorySystem.getSlotName(slotType);
+  const slotIcon = this.inventorySystem.getSlotIcon(slotType);
+  modalTitle.innerHTML = `${slotIcon} ${slotName}`;
+  
+  // Отображаем текущий предмет в слоте
+  const currentItem = this.inventorySystem.equipment[slotType];
+  if (currentItem) {
+    const rarity = ITEM_RARITY[currentItem.rarity] || ITEM_RARITY.common;
+    slotInfo.innerHTML = `
+      <h4>Текущий предмет:</h4>
+      <div class="current-item">
+        <div class="current-item-icon" style="color: ${rarity.color}">
+          ${currentItem.icon}
         </div>
-        <div class="item-description">${item.description}</div>
-        <div class="item-stats">
-          ${item.stats ? this.formatItemStats(item.stats) : ''}
-          ${item.effect ? `<div class="item-effect">Эффект: ${this.formatItemEffect(item.effect)}</div>` : ''}
+        <div class="current-item-info">
+          <div class="current-item-name" style="color: ${rarity.color}">
+            ${currentItem.name}
+          </div>
+          <div class="current-item-stats">
+            ${this.formatItemStats(currentItem.stats)}
+          </div>
         </div>
-        <div class="item-value">💰 ${item.value}</div>
-        ${item.stackable && item.quantity > 1 ? `<div class="item-quantity">x${item.quantity}</div>` : ''}
-      </div>
-      <div class="item-actions">
-        ${!item.equipped ? `<button class="btn-equip" data-action="equip">Экипировать</button>` : ''}
-        ${item.equipped ? `<button class="btn-unequip" data-action="unequip">Снять</button>` : ''}
-        ${item.type === 'potion' ? `<button class="btn-use" data-action="use">Использовать</button>` : ''}
-        <button class="btn-sell" data-action="sell">Продать</button>
       </div>
     `;
-    
-    const buttons = itemEl.querySelectorAll('button');
-    buttons.forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const action = btn.dataset.action;
-        this.handleItemAction(item.id, action);
-      });
+  } else {
+    slotInfo.innerHTML = `
+      <h4>Слот пуст</h4>
+      <div class="empty-slot">
+        <div class="empty-icon">📭</div>
+        <div class="empty-text">В этом слоте нет предмета</div>
+      </div>
+    `;
+  }
+  
+  // Отображаем доступные предметы для этого слота
+  const availableItems = this.inventorySystem.getItemsForSlot(slotType);
+  itemsList.innerHTML = '';
+  
+  if (availableItems.length === 0) {
+    itemsList.innerHTML = `
+      <div class="no-items">
+        <div class="no-items-icon">📦</div>
+        <div class="no-items-text">Нет доступных предметов для этого слота</div>
+      </div>
+    `;
+  } else {
+    availableItems.forEach(item => {
+      const itemElement = this.createModalItemElement(item, slotType);
+      itemsList.appendChild(itemElement);
     });
-    
-    return itemEl;
   }
+  
+  // Настраиваем кнопки
+  const unequipBtn = document.getElementById('btn-unequip');
+  const closeBtn = document.getElementById('btn-close-modal');
+  
+  if (unequipBtn) {
+    unequipBtn.style.display = currentItem ? 'block' : 'none';
+    unequipBtn.onclick = () => {
+      if (currentItem) {
+        this.inventorySystem.unequipItem(currentItem.id);
+        this.updateInventory();
+        this.updateAllDisplays();
+        this.showNotification('✅ Успех', `Предмет "${currentItem.name}" снят`, 'success');
+      }
+      this.closeEquipmentModal();
+    };
+  }
+  
+  if (closeBtn) {
+    closeBtn.onclick = () => this.closeEquipmentModal();
+  }
+  
+  // Показываем модальное окно
+  modal.classList.add('active');
+  
+  // Закрытие по клику вне окна
+  modal.onclick = (e) => {
+    if (e.target === modal) {
+      this.closeEquipmentModal();
+    }
+  };
+  
+  const closeBtnElement = modal.querySelector('.modal-close');
+  if (closeBtnElement) {
+    closeBtnElement.onclick = () => this.closeEquipmentModal();
+  }
+}
 
-  formatItemStats(stats) {
-    let html = '';
-    if (stats.hp) html += `<span>❤️ +${stats.hp} HP</span>`;
-    if (stats.atk) html += `<span>⚔️ +${stats.atk} ATK</span>`;
-    if (stats.def) html += `<span>🛡️ +${stats.def} DEF</span>`;
-    if (stats.crit) html += `<span>🎯 +${(stats.crit * 100).toFixed(1)}% крит</span>`;
-    return html;
+// Создание элемента предмета для модального окна
+createModalItemElement(item, slotType) {
+  const rarity = ITEM_RARITY[item.rarity] || ITEM_RARITY.common;
+  const canEquip = this.inventorySystem.canEquipItem(item.id);
+  
+  const itemElement = document.createElement('div');
+  itemElement.className = `modal-item ${canEquip ? '' : 'disabled'}`;
+  itemElement.innerHTML = `
+    <div class="item-header">
+      <div class="item-icon" style="color: ${rarity.color}">${item.icon}</div>
+      <div class="item-name" style="color: ${rarity.color}">${item.name}</div>
+      <div class="item-rarity" style="background: ${rarity.color}20">${rarity.name}</div>
+    </div>
+    <div class="item-description">${item.description || 'Нет описания'}</div>
+    <div class="item-stats">
+      ${item.stats ? this.formatItemStats(item.stats) : ''}
+    </div>
+    ${item.levelRequirement ? `
+      <div class="item-level ${player.level >= item.levelRequirement ? 'level-met' : 'level-locked'}">
+        📊 Ур. ${item.levelRequirement}
+      </div>
+    ` : ''}
+    <div class="item-footer">
+      <div class="item-value">💰 ${item.value}</div>
+      <button class="btn-equip-modal ${canEquip ? '' : 'disabled'}">
+        ${canEquip ? 'Экипировать' : 'Недоступно'}
+      </button>
+    </div>
+  `;
+  
+  if (canEquip) {
+    const equipBtn = itemElement.querySelector('.btn-equip-modal');
+    equipBtn.onclick = (e) => {
+      e.stopPropagation();
+      this.inventorySystem.equipItem(item.id);
+      this.updateInventory();
+      this.updateAllDisplays();
+      this.showNotification('✅ Успех', `Предмет "${item.name}" экипирован`, 'success');
+      this.closeEquipmentModal();
+    };
   }
+  
+  return itemElement;
+}
+
+// Закрытие модального окна
+closeEquipmentModal() {
+  const modal = document.getElementById('equipment-select-modal');
+  if (modal) modal.classList.remove('active');
+}
+
+// Обновленный метод renderInventoryItems
+renderInventoryItems() {
+  const itemsContainer = document.getElementById('inventory-items');
+  const itemCount = document.getElementById('item-count');
+  const maxSlots = document.getElementById('max-slots');
+  
+  if (!itemsContainer || !this.inventorySystem) return;
+  
+  itemsContainer.innerHTML = '';
+  
+  if (this.inventorySystem.items.length === 0) {
+    itemsContainer.innerHTML = `
+      <div class="empty-inventory">
+        <div class="empty-icon">📦</div>
+        <div class="empty-text">Инвентарь пуст</div>
+        <div class="empty-hint">Посетите магазин или победите врагов для получения предметов</div>
+      </div>
+    `;
+    return;
+  }
+  
+  // Сортируем предметы
+  const sortedItems = [...this.inventorySystem.items].sort((a, b) => {
+    // Сначала экипированные
+    if (a.equipped && !b.equipped) return -1;
+    if (!a.equipped && b.equipped) return 1;
+    
+    // Затем по редкости
+    const rarityOrder = { legendary: 0, epic: 1, rare: 2, uncommon: 3, common: 4 };
+    return rarityOrder[a.rarity] - rarityOrder[b.rarity];
+  });
+  
+  sortedItems.forEach((item, index) => {
+    const itemElement = this.createInventoryItemElement(item);
+    itemElement.style.animationDelay = `${index * 0.05}s`;
+    itemsContainer.appendChild(itemElement);
+  });
+  
+  if (itemCount) itemCount.textContent = this.inventorySystem.items.length;
+  if (maxSlots) maxSlots.textContent = this.inventorySystem.maxSlots;
+}
+
+createInventoryItemElement(item) {
+  const rarity = ITEM_RARITY[item.rarity] || ITEM_RARITY.common;
+  const slotType = this.inventorySystem.getSlotByItemType(item.type);
+  
+  const itemElement = document.createElement('div');
+  itemElement.className = `inventory-item ${item.equipped ? 'equipped' : ''}`;
+  itemElement.dataset.itemId = item.id;
+  itemElement.style.borderLeftColor = rarity.color;
+  itemElement.style.animation = 'newItem 0.5s ease-out';
+  
+  itemElement.innerHTML = `
+    <div class="item-header">
+      <div class="item-icon">${item.icon}</div>
+      <div class="item-name" style="color: ${rarity.color}">
+        ${item.name}
+      </div>
+      <div class="item-rarity" style="color: ${rarity.color}">${rarity.name}</div>
+    </div>
+    <div class="item-description">${item.description || 'Нет описания'}</div>
+    <div class="item-stats">
+      ${item.stats ? this.formatItemStats(item.stats) : ''}
+    </div>
+    ${item.effect ? `
+      <div class="item-effect">
+        <span class="effect-icon">✨</span>
+        <span class="effect-text">${this.formatItemEffect(item.effect)}</span>
+      </div>
+    ` : ''}
+    <div class="item-footer">
+      <div class="item-value">💰 ${item.value}</div>
+      ${item.quantity > 1 ? `<div class="item-quantity">x${item.quantity}</div>` : ''}
+      ${slotType ? `<div class="item-slot">${this.inventorySystem.getSlotIcon(slotType)}</div>` : ''}
+    </div>
+  `;
+  
+  // Добавляем обработчик клика для быстрого экипировки/использования
+  itemElement.onclick = (e) => {
+    e.stopPropagation();
+    this.handleItemClick(item);
+  };
+  
+  return itemElement;
+}
+// Обработка клика на предмет в инвентаре
+handleItemClick(item) {
+  if (item.type === 'potion' || item.type === 'scroll') {
+    // Использование расходника
+    this.inventorySystem.useItem(item.id);
+    this.updateInventory();
+    this.updateAllDisplays();
+    this.showNotification('✅ Успех', `Предмет "${item.name}" использован`, 'success');
+  } else {
+    // Для экипировки показываем модальное окно с выбором слота
+    const slotType = this.inventorySystem.getSlotByItemType(item.type);
+    if (slotType) {
+      this.openEquipmentModal(slotType);
+    } else {
+      // Если предмет нельзя экипировать (материалы и т.д.)
+      this.showItemInfoModal(item);
+    }
+  }
+}
+
+// Показ информации о предмете
+showItemInfoModal(item) {
+  const rarity = ITEM_RARITY[item.rarity] || ITEM_RARITY.common;
+  
+  const modalHTML = `
+    <div class="item-info-modal">
+      <div class="modal-header">
+        <div class="item-icon-large" style="color: ${rarity.color}">${item.icon}</div>
+        <h3 style="color: ${rarity.color}">${item.name}</h3>
+        <div class="item-rarity-large" style="background: ${rarity.color}20">${rarity.name}</div>
+      </div>
+      <div class="modal-body">
+        <div class="item-description">${item.description || 'Нет описания'}</div>
+        ${item.stats ? `
+          <div class="item-stats-detailed">
+            <h4>Характеристики:</h4>
+            ${this.formatItemStatsDetailed(item.stats)}
+          </div>
+        ` : ''}
+        ${item.effect ? `
+          <div class="item-effect-detailed">
+            <h4>Эффект:</h4>
+            <div class="effect-detail">${this.formatItemEffect(item.effect)}</div>
+          </div>
+        ` : ''}
+        <div class="item-value-large">💰 Цена: ${item.value} золота</div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-sell">Продать (${Math.floor(item.value * 0.5)} золота)</button>
+        <button class="btn-close">Закрыть</button>
+      </div>
+    </div>
+  `;
+  
+  // Создаем и показываем модальное окно
+  // (реализацию модального окна можно добавить отдельно)
+}
+
+formatItemStats(stats) {
+  let html = '';
+  if (stats.hp) html += `<span class="stat-badge">❤️ +${stats.hp} HP</span>`;
+  if (stats.atk) html += `<span class="stat-badge">⚔️ +${stats.atk} ATK</span>`;
+  if (stats.def) html += `<span class="stat-badge">🛡️ +${stats.def} DEF</span>`;
+  if (stats.crit) html += `<span class="stat-badge">🎯 +${(stats.crit * 100).toFixed(1)}%</span>`;
+  if (stats.dodge) html += `<span class="stat-badge">🌀 +${(stats.dodge * 100).toFixed(1)}%</span>`;
+  if (stats.speed) html += `<span class="stat-badge">⚡ +${stats.speed}</span>`;
+  return html;
+}
+
+// Подробное форматирование статов
+formatItemStatsDetailed(stats) {
+  let html = '<ul class="stats-list">';
+  if (stats.hp) html += `<li><span class="stat-name">Здоровье:</span> <span class="stat-value">+${stats.hp}</span></li>`;
+  if (stats.atk) html += `<li><span class="stat-name">Атака:</span> <span class="stat-value">+${stats.atk}</span></li>`;
+  if (stats.def) html += `<li><span class="stat-name">Защита:</span> <span class="stat-value">+${stats.def}</span></li>`;
+  if (stats.crit) html += `<li><span class="stat-name">Крит. шанс:</span> <span class="stat-value">+${(stats.crit * 100).toFixed(1)}%</span></li>`;
+  if (stats.dodge) html += `<li><span class="stat-name">Уклонение:</span> <span class="stat-value">+${(stats.dodge * 100).toFixed(1)}%</span></li>`;
+  if (stats.speed) html += `<li><span class="stat-name">Скорость:</span> <span class="stat-value">+${stats.speed}</span></li>`;
+  html += '</ul>';
+  return html;
+}
 
   formatItemEffect(effect) {
     switch (effect.type) {
