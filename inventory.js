@@ -422,7 +422,7 @@ export class InventorySystem {
     
     return true;
   }
-}
+
 
   // Покупка предмета в магазине
   buyItem(itemData, cost) {
