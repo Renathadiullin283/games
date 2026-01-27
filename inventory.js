@@ -14,9 +14,9 @@ export class InventorySystem {
       ring: null,
       amulet: null,
       gloves: null,    // Новый слот
-      chest: null
+      chest: null      // Новый слот
     };
-    this.maxSlots = 30; // Максимальное количество слотов
+    this.maxSlots = 30; // Увеличили максимальное количество слотов
   }
 
   // Загрузка инвентаря
@@ -128,7 +128,7 @@ export class InventorySystem {
     if (!item) return false;
     
     // Проверяем тип предмета
-    const slot = this.tByItemType(item.type);
+    const slot = this.getSlotByItemType(item.type);
     if (!slot) return false;
     
     // Снимаем текущий предмет в этом слоте, если есть
@@ -190,7 +190,7 @@ export class InventorySystem {
       
       // Броня
       'armor': 'armor',
-      'chest': 'chest',      // Отдельный слот для нагрудника
+      'chest': 'chest',
       'plate': 'chest',
       
       // Голова
@@ -224,6 +224,7 @@ export class InventorySystem {
     
     return typeMap[itemType] || null;
   }
+
   // Получение всех предметов для определенного слота
   getItemsForSlot(slotType) {
     return this.items.filter(item => {
@@ -283,7 +284,7 @@ export class InventorySystem {
           // При снятии уменьшаем текущий HP, но не ниже 1
           this.player.currentHp = Math.max(1, this.player.currentHp + hpBonus);
         }
-      } else if (stat === 'crit') {
+      } else if (stat === 'crit' || stat === 'dodge') {
         // Для процентов (крит, уклонение и т.д.)
         this.player.stats[stat] = (this.player.stats[stat] || 0) + (item.stats[stat] * multiplier);
       } else {
@@ -293,14 +294,22 @@ export class InventorySystem {
     });
   }
 
-
   // Обновление статов игрока
   updatePlayerStats() {
+    // Сохраняем базовые статы
     if (!this.player.baseStats) {
-    this.player.baseStats = { ...this.player.stats };
+      this.player.baseStats = { 
+        hp: this.player.stats.hp,
+        atk: this.player.stats.atk,
+        def: this.player.stats.def,
+        crit: this.player.stats.crit || 0,
+        dodge: this.player.stats.dodge || 0
+      };
     }
-    // Сначала сбрасываем базовые статы (без предметов)
-    this.player.stats = { ...this.player.baseStats || this.player.stats };
+    
+    // Сначала сбрасываем к базовым статам
+    this.player.stats = { ...this.player.baseStats };
+    this.player.maxHp = this.player.baseStats.hp;
     
     // Применяем статы со всех экипированных предметов
     Object.values(this.equipment).forEach(item => {
@@ -387,42 +396,6 @@ export class InventorySystem {
       item && item.id === itemId
     );
   }
-  // Получение информации о предмете в слоте
- getEquipmentInfo() {
-    const info = {};
-    Object.keys(this.equipment).forEach(slot => {
-      const item = this.equipment[slot];
-      if (item) {
-        info[slot] = {
-          id: item.id,
-          name: item.name,
-          icon: item.icon,
-          rarity: item.rarity,
-          stats: item.stats
-        };
-      } else {
-        info[slot] = null;
-      }
-    });
-    return info;
-  }
-
-  // Проверка, можно ли экипировать предмет
-  canEquipItem(itemId) {
-    const item = this.getItem(itemId);
-    if (!item) return false;
-    
-    const slot = this.getSlotByItemType(item.type);
-    if (!slot) return false;
-    
-    // Проверяем уровень, если требуется
-    if (item.levelRequirement && this.player.level < item.levelRequirement) {
-      return false;
-    }
-    
-    return true;
-  }
-
 
   // Покупка предмета в магазине
   buyItem(itemData, cost) {
@@ -470,6 +443,42 @@ export class InventorySystem {
     
     console.log(`💰 Продано: ${item.name} за ${sellPrice} золота`);
     savePlayer(this.player);
+    return true;
+  }
+
+  // Получение информации о предмете в слоте
+  getEquipmentInfo() {
+    const info = {};
+    Object.keys(this.equipment).forEach(slot => {
+      const item = this.equipment[slot];
+      if (item) {
+        info[slot] = {
+          id: item.id,
+          name: item.name,
+          icon: item.icon,
+          rarity: item.rarity,
+          stats: item.stats
+        };
+      } else {
+        info[slot] = null;
+      }
+    });
+    return info;
+  }
+
+  // Проверка, можно ли экипировать предмет
+  canEquipItem(itemId) {
+    const item = this.getItem(itemId);
+    if (!item) return false;
+    
+    const slot = this.getSlotByItemType(item.type);
+    if (!slot) return false;
+    
+    // Проверяем уровень, если требуется
+    if (item.levelRequirement && this.player.level < item.levelRequirement) {
+      return false;
+    }
+    
     return true;
   }
 }
@@ -550,6 +559,18 @@ export const ITEMS_DB = {
     value: 30,
     stackable: false
   },
+
+  'iron_helmet': {
+    id: 'iron_helmet',
+    name: 'Железный шлем',
+    type: 'helmet',
+    rarity: 'uncommon',
+    stats: { def: 3, hp: 15 },
+    description: 'Надежный железный шлем',
+    icon: '⛑️',
+    value: 80,
+    stackable: false
+  },
   
   // Ботинки
   'leather_boots': {
@@ -626,18 +647,8 @@ export const ITEMS_DB = {
     value: 15,
     stackable: true
   },
-    'iron_helmet': {
-    id: 'iron_helmet',
-    name: 'Железный шлем',
-    type: 'helmet',
-    rarity: 'uncommon',
-    stats: { def: 3, hp: 15 },
-    description: 'Надежный железный шлем',
-    icon: '⛑️',
-    value: 80,
-    stackable: false
-  },
-  
+
+  // Новые предметы для тестирования
   'leather_gloves': {
     id: 'leather_gloves',
     name: 'Кожаные перчатки',
@@ -698,7 +709,7 @@ export const ITEM_RARITY = {
 
 // Генерация случайного предмета
 export function generateRandomItem(minLevel = 1, maxLevel = 10) {
-  const itemTypes = ['weapon', 'armor', 'helmet', 'boots', 'potion', 'material'];
+  const itemTypes = ['weapon', 'armor', 'helmet', 'boots', 'potion', 'material', 'gloves', 'chest', 'ring', 'amulet'];
   const rarities = ['common', 'uncommon', 'rare'];
   
   const type = itemTypes[Math.floor(Math.random() * itemTypes.length)];
@@ -734,6 +745,25 @@ export function generateRandomItem(minLevel = 1, maxLevel = 10) {
     case 'boots':
       item.stats = { def: Math.floor(Math.random() * 1 * level) + 1 };
       break;
+
+    case 'gloves':
+      item.stats = { def: Math.floor(Math.random() * 1 * level) + 1, atk: Math.floor(Math.random() * 2 * level) };
+      break;
+
+    case 'chest':
+      item.stats = { def: Math.floor(Math.random() * 3 * level) + 1, hp: Math.floor(Math.random() * 15 * level) };
+      break;
+
+    case 'ring':
+      item.stats = { 
+        crit: Math.random() * 0.05 * level,
+        dodge: Math.random() * 0.03 * level
+      };
+      break;
+
+    case 'amulet':
+      item.stats = { hp: Math.floor(Math.random() * 20 * level) };
+      break;
       
     case 'potion':
       item.effect = { 
@@ -754,6 +784,10 @@ function getItemTypeName(type) {
     armor: 'Броня',
     helmet: 'Шлем',
     boots: 'Ботинки',
+    gloves: 'Перчатки',
+    chest: 'Нагрудник',
+    ring: 'Кольцо',
+    amulet: 'Амулет',
     potion: 'Зелье',
     material: 'Материал'
   };
@@ -762,10 +796,14 @@ function getItemTypeName(type) {
 
 function getRandomIcon(type) {
   const icons = {
-    weapon: ['🗡️', '🪓', '🏹', '🔨'],
+    weapon: ['🗡️', '🪓', '🏹', '🔨', '⚔️'],
     armor: ['🛡️', '🥋', '👕'],
     helmet: ['⛑️', '👑', '🎩'],
     boots: ['👢', '👞', '🥾'],
+    gloves: ['🧤', '🥊', '✊'],
+    chest: ['👕', '🥼', '🦺'],
+    ring: ['💍', '💎', '🔘'],
+    amulet: ['📿', '🔮', '✨'],
     potion: ['🧪', '⚗️', '💊'],
     material: ['⛏️', '💰', '💎', '🔮']
   };
