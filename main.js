@@ -112,17 +112,30 @@ class SceneManager {
     document.body.appendChild(errorDiv);
   }
 
-  addTestItems() {
-    console.log('📦 Добавляем тестовые предметы...');
-    
-    this.inventorySystem.addItem(ITEMS_DB.sword_beginner);
-    this.inventorySystem.addItem(ITEMS_DB.leather_armor);
-    this.inventorySystem.addItem(ITEMS_DB.health_potion_small);
-    this.inventorySystem.addItem(ITEMS_DB.iron_ore);
-    this.inventorySystem.addItem(generateRandomItem(1, 3));
-    
-    console.log('✅ Тестовые предметы добавлены');
-  }
+addTestItems() {
+  console.log('📦 Добавляем тестовые предметы...');
+  
+  // Экипировка
+  this.inventorySystem.addItem(ITEMS_DB.sword_beginner);
+  this.inventorySystem.addItem(ITEMS_DB.leather_armor);
+  this.inventorySystem.addItem(ITEMS_DB.iron_helmet);
+  this.inventorySystem.addItem(ITEMS_DB.leather_boots);
+  this.inventorySystem.addItem(ITEMS_DB.leather_gloves);
+  this.inventorySystem.addItem(ITEMS_DB.chainmail_chest);
+  this.inventorySystem.addItem(ITEMS_DB.silver_ring);
+  this.inventorySystem.addItem(ITEMS_DB.health_amulet);
+  
+  // Расходники
+  this.inventorySystem.addItem(ITEMS_DB.health_potion_small);
+  this.inventorySystem.addItem(ITEMS_DB.health_potion_medium);
+  this.inventorySystem.addItem(ITEMS_DB.strength_potion);
+  
+  // Материалы
+  this.inventorySystem.addItem(ITEMS_DB.iron_ore);
+  this.inventorySystem.addItem(ITEMS_DB.gold_ore);
+  
+  console.log('✅ Тестовые предметы добавлены');
+}
 
 updateInventory() {
   if (!player || !this.inventorySystem) return;
