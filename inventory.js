@@ -13,8 +13,10 @@ export class InventorySystem {
       boots: null,
       ring: null,
       amulet: null
+      gloves: null,    // Новый слот
+      chest: null
     };
-    this.maxSlots = 20; // Максимальное количество слотов
+    this.maxSlots = 30; // Максимальное количество слотов
   }
 
   // Загрузка инвентаря
@@ -126,7 +128,7 @@ export class InventorySystem {
     if (!item) return false;
     
     // Проверяем тип предмета
-    const slot = this.getSlotByItemType(item.type);
+    const slot = this.tByItemType(item.type);
     if (!slot) return false;
     
     // Снимаем текущий предмет в этом слоте, если есть
@@ -177,23 +179,87 @@ export class InventorySystem {
   // Получение слота по типу предмета
   getSlotByItemType(itemType) {
     const typeMap = {
+      // Оружие
       'weapon': 'weapon',
       'sword': 'weapon',
       'axe': 'weapon',
+      'dagger': 'weapon',
       'bow': 'weapon',
       'staff': 'weapon',
+      'wand': 'weapon',
+      
+      // Броня
       'armor': 'armor',
-      'chest': 'armor',
+      'chest': 'chest',      // Отдельный слот для нагрудника
+      'plate': 'chest',
+      
+      // Голова
       'helmet': 'helmet',
+      'hat': 'helmet',
+      'crown': 'helmet',
+      
+      // Ноги
       'boots': 'boots',
+      'shoes': 'boots',
+      
+      // Аксессуары
       'ring': 'ring',
       'amulet': 'amulet',
+      'necklace': 'amulet',
+      
+      // Руки
+      'gloves': 'gloves',
+      'gauntlets': 'gloves',
+      
+      // Расходники
       'potion': null,
       'scroll': null,
-      'material': null
+      'material': null,
+      'food': null,
+      
+      // Прочее
+      'quest': null,
+      'key': null
     };
     
     return typeMap[itemType] || null;
+  }
+  // Получение всех предметов для определенного слота
+  getItemsForSlot(slotType) {
+    return this.items.filter(item => {
+      const itemSlot = this.getSlotByItemType(item.type);
+      return itemSlot === slotType && !item.equipped;
+    });
+  }
+
+  // Получение имени слота
+  getSlotName(slotType) {
+    const slotNames = {
+      weapon: 'Оружие',
+      armor: 'Броня',
+      helmet: 'Шлем',
+      boots: 'Ботинки',
+      ring: 'Кольцо',
+      amulet: 'Амулет',
+      gloves: 'Перчатки',
+      chest: 'Нагрудник'
+    };
+    return slotNames[slotType] || 'Слот';
+  }
+
+  // Получение иконки слота
+  getSlotIcon(slotType) {
+    const slotIcons = {
+      weapon: '🗡️',
+      armor: '🛡️',
+      helmet: '⛑️',
+      boots: '👢',
+      ring: '💍',
+      amulet: '📿',
+      gloves: '🧤',
+      chest: '👕'
+    };
+    return slotIcons[slotType] || '📦';
   }
 
   // Применение статов предмета
@@ -202,18 +268,31 @@ export class InventorySystem {
     
     const multiplier = action === 'add' ? 1 : -1;
     
-    if (item.stats.hp) {
-      this.player.stats.hp += item.stats.hp * multiplier;
-      this.player.maxHp += item.stats.hp * multiplier;
-      if (action === 'remove' && this.player.currentHp > this.player.maxHp) {
-        this.player.currentHp = this.player.maxHp;
+    // Обработка каждого стата
+    Object.keys(item.stats).forEach(stat => {
+      if (stat === 'hp') {
+        // Особый случай для HP
+        const hpBonus = item.stats.hp * multiplier;
+        this.player.stats.hp += hpBonus;
+        this.player.maxHp += hpBonus;
+        
+        if (action === 'add') {
+          // При экипировке восстанавливаем HP на величину бонуса
+          this.player.currentHp = Math.min(this.player.currentHp + hpBonus, this.player.maxHp);
+        } else {
+          // При снятии уменьшаем текущий HP, но не ниже 1
+          this.player.currentHp = Math.max(1, this.player.currentHp + hpBonus);
+        }
+      } else if (stat === 'crit') {
+        // Для процентов (крит, уклонение и т.д.)
+        this.player.stats[stat] = (this.player.stats[stat] || 0) + (item.stats[stat] * multiplier);
+      } else {
+        // Для обычных статов (атака, защита и т.д.)
+        this.player.stats[stat] = (this.player.stats[stat] || 0) + (item.stats[stat] * multiplier);
       }
-    }
-    
-    if (item.stats.atk) this.player.stats.atk += item.stats.atk * multiplier;
-    if (item.stats.def) this.player.stats.def += item.stats.def * multiplier;
-    if (item.stats.crit) this.player.stats.crit += item.stats.crit * multiplier;
+    });
   }
+
 
   // Обновление статов игрока
   updatePlayerStats() {
@@ -308,6 +387,42 @@ export class InventorySystem {
       item && item.id === itemId
     );
   }
+  // Получение информации о предмете в слоте
+ getEquipmentInfo() {
+    const info = {};
+    Object.keys(this.equipment).forEach(slot => {
+      const item = this.equipment[slot];
+      if (item) {
+        info[slot] = {
+          id: item.id,
+          name: item.name,
+          icon: item.icon,
+          rarity: item.rarity,
+          stats: item.stats
+        };
+      } else {
+        info[slot] = null;
+      }
+    });
+    return info;
+  }
+
+  // Проверка, можно ли экипировать предмет
+  canEquipItem(itemId) {
+    const item = this.getItem(itemId);
+    if (!item) return false;
+    
+    const slot = this.getSlotByItemType(item.type);
+    if (!slot) return false;
+    
+    // Проверяем уровень, если требуется
+    if (item.levelRequirement && this.player.level < item.levelRequirement) {
+      return false;
+    }
+    
+    return true;
+  }
+}
 
   // Покупка предмета в магазине
   buyItem(itemData, cost) {
