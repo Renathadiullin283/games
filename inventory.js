@@ -625,6 +625,65 @@ export const ITEMS_DB = {
     icon: '💰',
     value: 15,
     stackable: true
+  },
+    'iron_helmet': {
+    id: 'iron_helmet',
+    name: 'Железный шлем',
+    type: 'helmet',
+    rarity: 'uncommon',
+    stats: { def: 3, hp: 15 },
+    description: 'Надежный железный шлем',
+    icon: '⛑️',
+    value: 80,
+    stackable: false
+  },
+  
+  'leather_gloves': {
+    id: 'leather_gloves',
+    name: 'Кожаные перчатки',
+    type: 'gloves',
+    rarity: 'common',
+    stats: { def: 1, atk: 2 },
+    description: 'Удобные кожаные перчатки',
+    icon: '🧤',
+    value: 35,
+    stackable: false
+  },
+  
+  'chainmail_chest': {
+    id: 'chainmail_chest',
+    name: 'Кольчужный нагрудник',
+    type: 'chest',
+    rarity: 'rare',
+    stats: { def: 8, hp: 30 },
+    description: 'Прочная кольчуга',
+    icon: '👕',
+    value: 200,
+    stackable: false
+  },
+  
+  'silver_ring': {
+    id: 'silver_ring',
+    name: 'Серебряное кольцо',
+    type: 'ring',
+    rarity: 'uncommon',
+    stats: { crit: 0.03, dodge: 0.02 },
+    description: 'Магическое серебряное кольцо',
+    icon: '💍',
+    value: 120,
+    stackable: false
+  },
+  
+  'health_amulet': {
+    id: 'health_amulet',
+    name: 'Амулет здоровья',
+    type: 'amulet',
+    rarity: 'rare',
+    stats: { hp: 50 },
+    description: 'Увеличивает максимальное здоровье',
+    icon: '📿',
+    value: 150,
+    stackable: false
   }
 };
 
