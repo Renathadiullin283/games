@@ -12,7 +12,7 @@ export class InventorySystem {
       helmet: null,
       boots: null,
       ring: null,
-      amulet: null
+      amulet: null,
       gloves: null,    // Новый слот
       chest: null
     };
