@@ -1,5 +1,5 @@
 // battle.js
-import { player, resetPlayerHp } from './game.js';
+import { player, resetPlayerHp, addExp, awardSkillPoints  } from './game.js';
 import { LOCATIONS } from './data.js';
 import { ENEMY_TYPES, ENEMY_ABILITIES } from './enemies.js';
 import { ITEMS_DB } from './inventory.js';
@@ -906,51 +906,48 @@ returnToLocationSelection() {
     }
   }
 
-  completeLocation() {
-    this.log('🏆 Локация полностью исследована!');
-    this.log('🎉 Вы получили награду за прохождение!');
-    
-    const baseReward = this.currentLocation.rewards || { gold: 100, exp: 200 };
-    const completionReward = {
-      gold: baseReward.gold * this.currentLocation.baseLevel,
-      exp: baseReward.exp * this.currentLocation.baseLevel
-    };
-    
-    player.gold += completionReward.gold;
-    player.level += 1;
-    
-    // Улучшение статов при повышении уровня
-    player.stats.hp += 20;
-    player.stats.atk += 5;
-    player.stats.def += 2;
-    player.maxHp = player.stats.hp;
-    player.currentHp = player.maxHp;
-    
-    this.log(`💰 Дополнительная награда: ${completionReward.gold} золота`);
-    this.log(`🌟 Дополнительный опыт: ${completionReward.exp} опыта`);
-    this.log(`📈 Уровень повышен: ${player.level}`);
-    this.log(`❤️ Максимальное HP увеличено до ${player.maxHp}`);
-    this.log(`⚔️ Атака увеличена до ${player.stats.atk}`);
-    this.log(`🛡️ Защита увеличена до ${player.stats.def}`);
-    
-    // Останавливаем всё
-    this.stopBattle();
-    
-    // Сохраняем прогресс
-    savePlayer(player);
-    
-    // Обновляем HUD
-    if (window.sceneManager) {
-      window.sceneManager.updateAllDisplays();
-    }
-    
-    // Автоматическое возвращение через 5 секунд
-    this.returnToMenuTimeout = setTimeout(() => {
-      if (window.sceneManager) {
-        window.sceneManager.showScene('menu');
-      }
-    }, 5000);
+completeLocation() {
+  this.log('🏆 Локация полностью исследована!');
+  this.log('🎉 Вы получили награду за прохождение!');
+  
+  const baseReward = this.currentLocation.rewards || { gold: 100, exp: 200 };
+  const completionReward = {
+    gold: baseReward.gold * this.currentLocation.baseLevel,
+    exp: baseReward.exp * this.currentLocation.baseLevel
+  };
+  
+  player.gold += completionReward.gold;
+  
+  // Добавляем опыт за прохождение локации
+  addExp(completionReward.exp);
+  
+  // Награда очками навыков за прохождение локации
+  const skillPointsReward = Math.max(1, Math.floor(this.currentLocation.baseLevel / 3));
+  
+  // Используем awardSkillPoints напрямую
+  awardSkillPoints(skillPointsReward, 'за прохождение локации');
+  
+  this.log(`💰 Дополнительная награда: ${completionReward.gold} золота`);
+  this.log(`🌟 Дополнительный опыт: ${completionReward.exp} опыта`);
+  
+  // Останавливаем всё
+  this.stopBattle();
+  
+  // Сохраняем прогресс
+  savePlayer(player);
+  
+  // Обновляем HUD
+  if (window.sceneManager) {
+    window.sceneManager.updateAllDisplays();
   }
+  
+  // Автоматическое возвращение через 5 секунд
+  this.returnToMenuTimeout = setTimeout(() => {
+    if (window.sceneManager) {
+      window.sceneManager.showScene('menu');
+    }
+  }, 5000);
+}
   
 
   gameOver() {
