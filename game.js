@@ -166,6 +166,27 @@ export function resetPlayerHp() {
     player.currentHp = player.maxHp;
   }
 }
+export function awardSkillPoints(amount, reason = '') {
+  if (!player) return;
+  
+  if (player.skillPoints === undefined) {
+    player.skillPoints = 0;
+  }
+  
+  player.skillPoints += amount;
+  
+  console.log(`✨ Награда: ${amount} очков навыков за ${reason}. Всего: ${player.skillPoints}`);
+  
+  // Показываем уведомление
+  if (window.sceneManager && window.sceneManager.showNotification) {
+    window.sceneManager.showNotification('✨ Награда за достижение', 
+      `Получено ${amount} очков навыков! ${reason}`, 'success');
+  }
+  
+  savePlayer(player);
+  
+  return player.skillPoints;
+}
 
 // Экспортируем промис для удобства
 export const playerReady = initPlayer();
