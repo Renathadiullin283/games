@@ -146,7 +146,28 @@ export function unlockLocation(locationId) {
   
   return false;
 }
-
+export function awardSkillPoints(amount, reason = '') {
+  if (!player) return;
+  
+  if (player.skillPoints === undefined) {
+    player.skillPoints = 0;
+  }
+  
+  player.skillPoints += amount;
+  
+  console.log(`✨ Награда: ${amount} очков навыков за ${reason}. Всего: ${player.skillPoints}`);
+  
+  // Обновляем UI через сцену
+  if (window.sceneManager) {
+    window.sceneManager.showNotification('✨ Награда за достижение', 
+      `Получено ${amount} очков навыков! ${reason}`, 'success');
+    window.sceneManager.updateAllDisplays();
+  }
+  
+  savePlayer(player);
+  
+  return player.skillPoints;
+}
 // Завершение локации
 export function completeLocation(locationId) {
   if (!player || !player.completedLocations) return false;
@@ -190,3 +211,4 @@ export function awardSkillPoints(amount, reason = '') {
 
 // Экспортируем промис для удобства
 export const playerReady = initPlayer();
+export { addExp, awardSkillPoints, initPlayer, player, playerReady, resetPlayerHp, isLocationUnlocked, unlockLocation, completeLocation };
