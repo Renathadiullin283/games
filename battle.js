@@ -806,8 +806,22 @@ returnToLocationSelection() {
     const expReward = this.enemy.exp || 15;
     
     player.gold += goldReward;
-    // TODO: Добавить систему опыта
-    // player.exp += expReward;
+    const leveledUp = addExp(expReward);
+  
+  this.enemiesDefeated++;
+  
+  this.log(`💀 ${this.enemy.name} побежден!`);
+  this.log(`💰 Получено ${goldReward} золота`);
+  this.log(`🌟 Получено ${expReward} опыта`);
+  if (leveledUp) {
+  this.log(`✨ Уровень повышен! Новый уровень: ${player.level}`);
+    // Очки навыков начисляются автоматически в addExp
+  }
+               // Обновляем UI через сцену
+  if (window.sceneManager) {
+    window.sceneManager.updateAllDisplays();
+  }
+  
     
     this.enemiesDefeated++;
     
