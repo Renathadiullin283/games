@@ -1673,25 +1673,62 @@ updateSkills() {
     console.log('✅ Обработчики событий инициализированы');
   }
 
-  showDailyRewardsModal() {
-    const modal = document.getElementById('daily-rewards');
-    if (modal) {
-      modal.classList.add('active');
-      
-      const closeBtn = modal.querySelector('.modal-close');
-      if (closeBtn) {
-        closeBtn.onclick = () => {
-          modal.classList.remove('active');
-        };
-      }
-      
-      document.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          modal.classList.remove('active');
-        }
-      });
+showDailyRewardsModal() {
+  const modal = document.getElementById('daily-rewards');
+  if (modal) {
+    modal.classList.add('active');
+    
+    // Добавляем награды
+    const rewardsList = modal.querySelector('#rewards-list');
+    if (rewardsList) {
+      rewardsList.innerHTML = `
+        <div class="reward-day active">
+          <div class="day-number">День 1</div>
+          <div class="reward-content">💰 100 золота</div>
+          <div class="reward-status">✅ Получено</div>
+        </div>
+        <div class="reward-day today">
+          <div class="day-number">День 2</div>
+          <div class="reward-content">✨ 1 очко навыков</div>
+          <div class="reward-status">🎁 Забрать</div>
+        </div>
+        <div class="reward-day">
+          <div class="day-number">День 3</div>
+          <div class="reward-content">🧪 Зелье здоровья</div>
+          <div class="reward-status">🔒 Завтра</div>
+        </div>
+      `;
     }
+    
+    const claimBtn = modal.querySelector('#btn-claim-daily');
+    if (claimBtn) {
+      claimBtn.onclick = () => {
+        if (player) {
+          player.gold += 100;
+          player.skillPoints = (player.skillPoints || 0) + 1;
+          savePlayer(player);
+          this.showNotification('🎁 Ежедневная награда', 'Получено 100 золота и 1 очко навыков!', 'success');
+          modal.classList.remove('active');
+          this.updateAllDisplays();
+        }
+      };
+    }
+    
+    // Закрытие модального окна
+    const closeBtn = modal.querySelector('.modal-close');
+    if (closeBtn) {
+      closeBtn.onclick = () => {
+        modal.classList.remove('active');
+      };
+    }
+    
+    document.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.classList.remove('active');
+      }
+    });
   }
+}
   checkForNewSkillPoints() {
   if (!player || !this.skillSystem) return;
   
