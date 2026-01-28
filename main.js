@@ -49,6 +49,8 @@ class SceneManager {
     try {
       await playerReady;
       console.log('✅ Игрок загружен:', player);
+          console.log('🎯 Начальные очки навыков:', player.skillPoints);
+       this.addDebugSkillPointsButton();
       
       // Инициализируем систему инвентаря
       this.inventorySystem = new InventorySystem(player);
@@ -136,6 +138,41 @@ addTestItems() {
   this.inventorySystem.addItem(ITEMS_DB.gold_ore);
   
   console.log('✅ Тестовые предметы добавлены');
+}
+  addDebugSkillPointsButton() {
+  // Создаем кнопку для тестирования (только в режиме разработки)
+  const debugBtn = document.createElement('button');
+  debugBtn.id = 'btn-debug-skill-points';
+  debugBtn.style.cssText = `
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    background: #9b59b6;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-size: 12px;
+    z-index: 9999;
+    cursor: pointer;
+  `;
+  debugBtn.textContent = '➕ Очки навыков';
+  debugBtn.onclick = () => {
+    if (player) {
+      player.skillPoints = (player.skillPoints || 0) + 1;
+      savePlayer(player);
+      
+      // Синхронизируем с системой навыков
+      if (this.skillSystem) {
+        this.skillSystem.syncSkillPoints();
+      }
+      
+      this.showNotification('🎯 Тест', 'Добавлено 1 очко навыков', 'success');
+      this.updateAllDisplays();
+    }
+  };
+  
+  document.body.appendChild(debugBtn);
 }
 
 updateInventory() {
@@ -725,10 +762,26 @@ formatItemStatsDetailed(stats) {
     if (menuClass) menuClass.textContent = player.classId === 'warrior' ? 'Воин' : 'Ассасин';
     if (menuHp) menuHp.textContent = `${player.currentHp}/${player.maxHp}`;
     if (menuExp) menuExp.textContent = `${player.exp}/${player.expToNextLevel}`;
+    
     if (menuHpBar) {
       const hpPercent = (player.currentHp / player.maxHp) * 100;
       menuHpBar.style.width = `${hpPercent}%`;
     }
+      // Показываем очки навыков в меню
+  const menuSkillPoints = document.getElementById('menu-skill-points');
+  if (!menuSkillPoints) {
+    // Создаем элемент если его нет
+    const playerCard = document.querySelector('.player-card');
+    if (playerCard) {
+      const skillPointsEl = document.createElement('div');
+      skillPointsEl.id = 'menu-skill-points';
+      skillPointsEl.innerHTML = `Очки навыков: <span class="skill-points-value">${player.skillPoints || 0}</span>`;
+      playerCard.appendChild(skillPointsEl);
+    }
+  } else {
+    menuSkillPoints.innerHTML = `Очки навыков: <span class="skill-points-value">${player.skillPoints || 0}</span>`;
+  }
+  
     
     // Обновляем быструю статистику
     const quickAtk = document.getElementById('menu-atk');
@@ -1126,14 +1179,18 @@ fillShopCategory(category) {
 // main.js - добавление в SceneManager (в раздел updateSkills)
 
 updateSkills() {
-  if (!player || !this.skillSystem) {
+    console.log('Обновление сцены навыков...');
+  if (!this.skillSystem) {
     this.initializeSkillSystem();
-    return;
+  } else {
+    // Всегда синхронизируем очки при обновлении
+    this.skillSystem.syncSkillPoints();
   }
 
   this.updateSkillPoints();
   this.renderSkillTree();
   this.updateActiveSkills();
+  this.updateSkillStats();
 }
 
 // main.js - добавьте эти методы в класс SceneManager
@@ -1149,17 +1206,52 @@ initializeSkillSystem() {
     if (this.skillSystem.loadSkillLevels) {
       this.skillSystem.loadSkillLevels();
     }
+    
+    // Синхронизируем очки навыков
+    if (this.skillSystem.syncSkillPoints) {
+      this.skillSystem.syncSkillPoints();
+    }
+    
     console.log('✨ Система навыков инициализирована');
+    console.log('🎯 Очков навыков у игрока:', player.skillPoints);
+    console.log('🎯 Очков в системе:', this.skillSystem.skillPoints);
   }, 100);
 }
 
 updateSkillPoints() {
   const pointsElement = document.getElementById('skill-points');
-  if (pointsElement && this.skillSystem) {
-    pointsElement.textContent = this.skillSystem.skillPoints;
-    pointsElement.classList.toggle('has-points', this.skillSystem.skillPoints > 0);
+  if (pointsElement) {
+    // Берем очки напрямую из игрока
+    const skillPoints = player ? (player.skillPoints || 0) : 0;
+    pointsElement.textContent = skillPoints;
+    
+    // Добавляем класс если есть очки
+    pointsElement.parentElement.classList.toggle('has-points', skillPoints > 0);
+    
+    // Анимация для новых очков
+    if (skillPoints > 0) {
+      pointsElement.classList.add('pulse');
+      setTimeout(() => pointsElement.classList.remove('pulse'), 1000);
+    }
   }
 }
+
+// Добавим стили для анимации
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+  .pulse {
+    animation: pulse 0.5s ease-in-out;
+  }
+  .has-points {
+    background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%) !important;
+  }
+`;
+document.head.appendChild(style);
 
 renderSkillTree() {
   const container = document.getElementById('skills-tree');
