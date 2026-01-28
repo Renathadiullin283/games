@@ -281,6 +281,21 @@ addSkillUI() {
   // Обновляем умения
   this.updateSkillCooldowns();
 }
+usePlayerSkill(skillId) {
+  if (!window.sceneManager || !window.sceneManager.skillSystem) return;
+  
+  const result = window.sceneManager.skillSystem.useSkill(skillId, this);
+  
+  if (result.success) {
+    this.log(result.message);
+    // Обновляем UI навыков
+    if (window.sceneManager.updateActiveSkills) {
+      window.sceneManager.updateActiveSkills();
+    }
+  } else {
+    this.log(`❌ ${result.message}`);
+  }
+}
 returnToLocationSelection() {
   if (this.isBattleActive) {
     if (confirm('Вы уверены, что хотите прервать путешествие и вернуться к выбору локаций?')) {
@@ -560,7 +575,25 @@ returnToLocationSelection() {
     
     let damage = player.stats.atk;
     let isCrit = false;
+    if (window.sceneManager && window.sceneManager.skillSystem) {
+    const skillSystem = window.sceneManager.skillSystem;
     
+    // Бонус от навыка "Мощный удар"
+    const powerStrikeSkill = skillSystem.getSkillById('warrior_power_strike');
+    if (powerStrikeSkill && powerStrikeSkill.currentLevel > 0) {
+      const powerStrikeChance = 0.05 * powerStrikeSkill.currentLevel;
+      if (Math.random() < powerStrikeChance) {
+        damage *= 2;
+        this.log('⚔️ Сработал "Мощный удар"!');
+      }
+    }
+    
+    // Бонус от навыка "Критическое мастерство"
+    const critSkill = skillSystem.getSkillById('assassin_crit_mastery');
+    if (critSkill && critSkill.currentLevel > 0) {
+      player.stats.crit += 0.05 * critSkill.currentLevel;
+    }
+  }
     // Проверяем гарантированный крит
     if (this.activeEffects.nextCrit) {
       damage = Math.floor(damage * 2.5);
