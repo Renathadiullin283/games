@@ -686,39 +686,66 @@ body {
   margin-right: 0.5rem;
 }
 
-/* Сцена инвентаря */
+/* Улучшенные стили для инвентаря */
+
 .inventory-content {
   padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .inventory-main {
   position: relative;
-  min-height: 300px;
-  margin-bottom: 2rem;
+  width: 320px;
+  height: 320px;
+  margin: 2rem auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+/* Центр с персонажем */
 .character-center {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 2;
+  z-index: 10;
 }
 
 .character-display {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border-radius: 20px;
   padding: 1.5rem;
   text-align: center;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  box-shadow: var(--shadow-lg);
-  min-width: 200px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  min-width: 160px;
+  transform: translateY(0);
+  transition: all 0.3s ease;
+}
+
+.character-display:hover {
+  transform: translateY(-5px);
+  box-shadow: 
+    0 15px 40px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 .character-icon {
-  font-size: 4rem;
+  font-size: 3.5rem;
   margin-bottom: 1rem;
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
 .character-info {
@@ -726,262 +753,442 @@ body {
 }
 
 .character-name {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: white;
   margin-bottom: 0.25rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .character-level {
-  font-size: 0.9rem;
-  color: var(--light-gray);
-  background: rgba(255, 255, 255, 0.05);
+  font-size: 0.85rem;
+  color: var(--warning);
+  background: linear-gradient(135deg, rgba(243, 156, 18, 0.15) 0%, rgba(230, 126, 34, 0.1) 100%);
   padding: 0.25rem 0.75rem;
-  border-radius: var(--radius-full);
+  border-radius: 20px;
   display: inline-block;
+  border: 1px solid rgba(243, 156, 18, 0.3);
 }
 
 .character-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
+  justify-content: center;
 }
 
 .stat-item {
-  background: rgba(255, 255, 255, 0.05);
-  padding: 0.5rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.85rem;
+  background: rgba(255, 255, 255, 0.07);
+  padding: 0.5rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
+  gap: 0.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+}
+
+.stat-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
 }
 
 .stat-icon {
   font-size: 0.9rem;
+  opacity: 0.9;
 }
 
-/* Круг ячеек экипировки */
+/* Круг ячеек экипировки - ИСПРАВЛЕННОЕ ПОЗИЦИОНИРОВАНИЕ */
 .equipment-circle {
-  position: relative;
-  height: 300px;
-  width: 300px;
-  margin: 0 auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Разрешаем клики через круг */
 }
 
+/* Базовый стиль для всех ячеек */
 .equipment-slot {
   position: absolute;
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-  border-radius: var(--radius-md);
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+  border-radius: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all var(--transition-normal);
-  z-index: 1;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: auto; /* Разрешаем клики на ячейках */
+  z-index: 5;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.equipment-slot::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .equipment-slot:hover {
-  transform: scale(1.1);
+  transform: translateY(-5px) scale(1.1);
   border-color: var(--accent);
-  box-shadow: 0 0 20px rgba(233, 69, 96, 0.3);
-  z-index: 3;
+  box-shadow: 
+    0 8px 25px rgba(233, 69, 96, 0.3),
+    0 0 0 1px rgba(233, 69, 96, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  z-index: 10;
+}
+
+.equipment-slot:hover::before {
+  opacity: 1;
 }
 
 .equipment-slot.equipped {
   border-color: var(--success);
-  background: linear-gradient(135deg, rgba(0, 184, 148, 0.1) 0%, rgba(0, 184, 148, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(0, 184, 148, 0.15) 0%, rgba(0, 184, 148, 0.05) 100%);
 }
 
+.equipment-slot.equipped:hover {
+  border-color: #00ffcc;
+  box-shadow: 
+    0 8px 25px rgba(0, 255, 204, 0.3),
+    0 0 0 1px rgba(0, 255, 204, 0.2);
+}
+
+/* Иконка слота */
 .slot-icon {
   font-size: 1.5rem;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.3rem;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
+  transition: all 0.3s ease;
 }
 
+.equipment-slot:hover .slot-icon {
+  transform: scale(1.2);
+}
+
+/* Название слота */
 .slot-name {
-  font-size: 0.75rem;
-  color: var(--light-gray);
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.7);
   text-align: center;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
 }
 
+.equipment-slot:hover .slot-name {
+  color: white;
+  font-weight: 600;
+}
+
+/* Предмет в слоте */
 .slot-item {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 2rem;
+  font-size: 1.8rem;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.4));
+  z-index: 2;
+  transition: all 0.3s ease;
+}
+
+.equipment-slot:hover .slot-item {
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+/* ТОЧНОЕ ПОЗИЦИОНИРОВАНИЕ ЯЧЕЕК ПО КРУГУ */
+
+/* Оружие - сверху */
+[data-position="top"] {
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+[data-position="top"]:hover {
+  transform: translateX(-50%) translateY(-5px) scale(1.1);
+}
+
+/* Броня - справа сверху */
+[data-position="top-right"] {
+  top: 50px;
+  right: 50px;
+  left: auto;
+}
+
+/* Шлем - справа */
+[data-position="right"] {
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+}
+
+[data-position="right"]:hover {
+  transform: translateY(-50%) translateY(-5px) scale(1.1);
+}
+
+/* Ботинки - справа снизу */
+[data-position="bottom-right"] {
+  bottom: 50px;
+  right: 50px;
+  left: auto;
+  top: auto;
+}
+
+/* Кольцо - снизу */
+[data-position="bottom"] {
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  top: auto;
+}
+
+[data-position="bottom"]:hover {
+  transform: translateX(-50%) translateY(-5px) scale(1.1);
+}
+
+/* Амулет - слева снизу */
+[data-position="bottom-left"] {
+  bottom: 50px;
+  left: 50px;
+  top: auto;
+}
+
+/* Перчатки - слева */
+[data-position="left"] {
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+}
+
+[data-position="left"]:hover {
+  transform: translateY(-50%) translateY(-5px) scale(1.1);
+}
+
+/* Нагрудник - слева сверху */
+[data-position="top-left"] {
+  top: 50px;
+  left: 50px;
+}
+
+/* Адаптивность для ячеек */
+@media (max-width: 768px) {
+  .inventory-main {
+    width: 280px;
+    height: 280px;
+  }
+  
+  .equipment-slot {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .slot-icon {
+    font-size: 1.3rem;
+  }
+  
+  .slot-name {
+    font-size: 0.65rem;
+  }
+  
+  .slot-item {
+    font-size: 1.5rem;
+  }
+  
+  [data-position="top"] { top: 5px; }
+  [data-position="top-right"] { top: 40px; right: 40px; }
+  [data-position="right"] { right: 5px; }
+  [data-position="bottom-right"] { bottom: 40px; right: 40px; }
+  [data-position="bottom"] { bottom: 5px; }
+  [data-position="bottom-left"] { bottom: 40px; left: 40px; }
+  [data-position="left"] { left: 5px; }
+  [data-position="top-left"] { top: 40px; left: 40px; }
+}
+
+@media (max-width: 480px) {
+  .inventory-main {
+    width: 240px;
+    height: 240px;
+  }
+  
+  .equipment-slot {
+    width: 55px;
+    height: 55px;
+  }
+  
+  .character-display {
+    padding: 1rem;
+    min-width: 140px;
+  }
+  
+  .character-icon {
+    font-size: 2.8rem;
+  }
+  
+  .character-name {
+    font-size: 1rem;
+  }
+  
+  .character-level {
+    font-size: 0.8rem;
+  }
+  
+  .stat-item {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.75rem;
+  }
+  
+  [data-position="top-right"] { top: 30px; right: 30px; }
+  [data-position="bottom-right"] { bottom: 30px; right: 30px; }
+  [data-position="bottom-left"] { bottom: 30px; left: 30px; }
+  [data-position="top-left"] { top: 30px; left: 30px; }
+}
+
+/* Анимация при появлении ячеек */
+@keyframes slotAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.5) rotate(-180deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+.equipment-slot {
+  animation: slotAppear 0.5s ease-out backwards;
+}
+
+/* Задержка для каждой ячейки */
+[data-position="top"] { animation-delay: 0.1s; }
+[data-position="top-right"] { animation-delay: 0.15s; }
+[data-position="right"] { animation-delay: 0.2s; }
+[data-position="bottom-right"] { animation-delay: 0.25s; }
+[data-position="bottom"] { animation-delay: 0.3s; }
+[data-position="bottom-left"] { animation-delay: 0.35s; }
+[data-position="left"] { animation-delay: 0.4s; }
+[data-position="top-left"] { animation-delay: 0.45s; }
+
+/* Индикатор пустого слота */
+.equipment-slot:not(.equipped) .slot-item {
+  display: none;
+}
+
+/* Подсказка при наведении */
+.equipment-slot::after {
+  content: attr(data-slot-name);
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 20;
   pointer-events: none;
 }
 
-/* Позиционирование ячеек */
-[data-position="top"] { top: 0; left: 50%; transform: translateX(-50%); }
-[data-position="top-right"] { top: 20%; right: 20%; }
-[data-position="right"] { top: 50%; right: 0; transform: translateY(-50%); }
-[data-position="bottom-right"] { bottom: 20%; right: 20%; }
-[data-position="bottom"] { bottom: 0; left: 50%; transform: translateX(-50%); }
-[data-position="bottom-left"] { bottom: 20%; left: 20%; }
-[data-position="left"] { top: 50%; left: 0; transform: translateY(-50%); }
-[data-position="top-left"] { top: 20%; left: 20%; }
-
-/* Список предметов */
-.inventory-items-section {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+.equipment-slot:hover::after {
+  opacity: 1;
+  visibility: visible;
+  bottom: -35px;
 }
 
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
+/* Цвета для разных типов слотов */
+[data-slot="weapon"] .slot-icon { color: #e74c3c; }
+[data-slot="armor"] .slot-icon { color: #3498db; }
+[data-slot="helmet"] .slot-icon { color: #f1c40f; }
+[data-slot="boots"] .slot-icon { color: #2ecc71; }
+[data-slot="ring"] .slot-icon { color: #9b59b6; }
+[data-slot="amulet"] .slot-icon { color: #e67e22; }
+[data-slot="gloves"] .slot-icon { color: #1abc9c; }
+[data-slot="chest"] .slot-icon { color: #34495e; }
 
-.section-header h3 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: white;
-}
-
-.inventory-count {
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-full);
-  font-weight: 700;
-  color: white;
-}
-
+/* Стили для списка предметов в инвентаре */
 .items-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 1rem;
+  margin-top: 1.5rem;
+  width: 100%;
+  max-width: 1000px;
 }
 
 .inventory-item {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+  border-radius: 16px;
   padding: 1rem;
   border-left: 4px solid var(--common);
   cursor: pointer;
-  transition: all var(--transition-normal);
+  transition: all 0.3s ease;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.inventory-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.02), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .inventory-item:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-md);
-  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-5px);
+  box-shadow: 
+    0 10px 25px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.inventory-item:hover::before {
+  opacity: 1;
 }
 
 .inventory-item.equipped {
   border-left-color: var(--success);
-  background: linear-gradient(135deg, rgba(0, 184, 148, 0.1) 0%, rgba(0, 184, 148, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(0, 184, 148, 0.15) 0%, rgba(0, 184, 148, 0.05) 100%);
 }
 
-.item-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-}
-
-.item-icon {
-  font-size: 1.5rem;
-}
-
-.item-name {
-  font-weight: 600;
-  flex: 1;
+.inventory-item.equipped::after {
+  content: 'Экипировано';
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--success);
   color: white;
-}
-
-.item-rarity {
-  font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.item-description {
-  font-size: 0.85rem;
-  color: var(--light-gray);
-  margin-bottom: 0.75rem;
-  line-height: 1.4;
-}
-
-.item-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-}
-
-.stat-badge {
-  background: rgba(255, 255, 255, 0.05);
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.8rem;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.item-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.item-value {
-  font-size: 0.9rem;
-  color: var(--warning);
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
   font-weight: 600;
-}
-
-.item-quantity {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.item-slot {
-  font-size: 0.9rem;
-  opacity: 0.7;
-}
-
-.empty-inventory, .shop-empty {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 3rem 1rem;
-  color: var(--light-gray);
-}
-
-.empty-icon, .empty-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  opacity: 0.5;
-}
-
-.empty-text, .empty-text {
-  font-size: 1.1rem;
-  margin-bottom: 0.5rem;
-  color: white;
-}
-
-.empty-hint, .empty-hint {
-  font-size: 0.9rem;
-  opacity: 0.7;
 }
 
 /* Модальные окна */
