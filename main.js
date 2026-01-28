@@ -1135,13 +1135,21 @@ updateSkills() {
   this.updateActiveSkills();
 }
 
+// main.js - добавьте эти методы в класс SceneManager
+
 initializeSkillSystem() {
   if (!player) return;
   
+  // Инициализируем систему навыков
   this.skillSystem = createSkillSystem(player);
-  this.skillSystem.loadSkillLevels();
   
-  console.log('✨ Система навыков инициализирована');
+  // Загружаем уровни навыков из сохранения
+  setTimeout(() => {
+    if (this.skillSystem.loadSkillLevels) {
+      this.skillSystem.loadSkillLevels();
+    }
+    console.log('✨ Система навыков инициализирована');
+  }, 100);
 }
 
 updateSkillPoints() {
@@ -1162,27 +1170,26 @@ renderSkillTree() {
   
   // Рендерим общие навыки
   if (skillsByCategory.common) {
-    this.renderSkillCategory('Общие навыки', '🌍', skillsByCategory.common, container);
+    this.renderSkillCategory('🌍 Общие навыки', skillsByCategory.common, container);
   }
   
   // Рендерим классовые навыки
-  const className = player.classId === 'warrior' ? 'Воин' : 
-                   player.classId === 'assassin' ? 'Ассасин' :
-                   player.classId === 'mage' ? 'Маг' : 'Лучник';
+  const className = player.classId === 'warrior' ? '⚔️ Воин' : 
+                   player.classId === 'assassin' ? '🗡️ Ассасин' :
+                   player.classId === 'mage' ? '🔮 Маг' : '🏹 Лучник';
   
   if (skillsByCategory[player.classId]) {
-    this.renderSkillCategory(`${className}`, getClassIcon(player.classId), 
-                            skillsByCategory[player.classId], container);
+    this.renderSkillCategory(className, skillsByCategory[player.classId], container);
   }
 }
 
-renderSkillCategory(title, icon, category, container) {
+renderSkillCategory(title, category, container) {
   const categoryElement = document.createElement('div');
   categoryElement.className = 'skill-category';
   
   categoryElement.innerHTML = `
     <div class="category-header">
-      <div class="category-icon">${icon}</div>
+      <div class="category-icon">${title.charAt(0)}</div>
       <h3>${title}</h3>
     </div>
   `;
@@ -1190,13 +1197,17 @@ renderSkillCategory(title, icon, category, container) {
   // Рендерим подкатегории
   Object.keys(category).forEach(subcategory => {
     const subcategoryElement = this.renderSkillSubcategory(subcategory, category[subcategory]);
-    categoryElement.appendChild(subcategoryElement);
+    if (subcategoryElement) {
+      categoryElement.appendChild(subcategoryElement);
+    }
   });
   
   container.appendChild(categoryElement);
 }
 
 renderSkillSubcategory(title, skills) {
+  if (!skills || skills.length === 0) return null;
+  
   const subcategoryElement = document.createElement('div');
   subcategoryElement.className = 'skill-subcategory';
   
@@ -1205,7 +1216,7 @@ renderSkillSubcategory(title, skills) {
     economy: 'Экономика',
     offense: 'Атака',
     defense: 'Защита',
-    combat: 'Боевые',
+    combat: 'Боевые навыки',
     stealth: 'Скрытность',
     critical: 'Критический урон',
     poison: 'Яды',
@@ -1216,12 +1227,14 @@ renderSkillSubcategory(title, skills) {
     traps: 'Ловушки'
   };
   
+  const unlockedCount = skills.filter(s => s.currentLevel > 0).length;
+  
   subcategoryElement.innerHTML = `
     <div class="subcategory-header">
       <h4>${subcategoryNames[title] || title}</h4>
       <div class="subcategory-progress">
         <span class="progress-text">
-          ${skills.filter(s => s.currentLevel > 0).length}/${skills.length}
+          ${unlockedCount}/${skills.length}
         </span>
       </div>
     </div>
@@ -1246,13 +1259,17 @@ renderSkillSubcategory(title, skills) {
   // Рендерим навыки
   sortedSkills.forEach(skill => {
     const skillElement = this.createSkillElement(skill);
-    skillList.appendChild(skillElement);
+    if (skillElement) {
+      skillList.appendChild(skillElement);
+    }
   });
   
   return subcategoryElement;
 }
 
 createSkillElement(skill) {
+  if (!skill) return null;
+  
   const isMaxed = skill.currentLevel >= skill.maxLevel;
   const canUpgrade = !isMaxed && 
                      this.skillSystem.skillPoints >= skill.cost &&
@@ -1264,31 +1281,15 @@ createSkillElement(skill) {
                            ${isMaxed ? 'maxed' : ''} 
                            ${!meetsRequirements ? 'locked' : ''}`;
   skillElement.dataset.skillId = skill.id;
+  skillElement.style.setProperty('--skill-color', skill.color || '#3498db');
   
   // Прогресс бар
   const progressPercent = (skill.currentLevel / skill.maxLevel) * 100;
   
-  skillElement.innerHTML = `
-    <div class="skill-header">
-      <div class="skill-icon" style="color: ${skill.color}">${skill.icon}</div>
-      <div class="skill-info">
-        <div class="skill-name">${skill.name}</div>
-        <div class="skill-level">
-          Уровень: <span class="level-current">${skill.currentLevel}</span>/
-          <span class="level-max">${skill.maxLevel}</span>
-        </div>
-      </div>
-      <div class="skill-cost">
-        <div class="cost-icon">✨</div>
-        <div class="cost-value">${skill.cost}</div>
-      </div>
-    </div>
-    
-    <div class="skill-description">
-      ${skill.description}
-    </div>
-    
-    ${skill.requirements.length > 0 ? `
+  // Форматирование требований
+  let requirementsHTML = '';
+  if (skill.requirements && skill.requirements.length > 0) {
+    requirementsHTML = `
       <div class="skill-requirements">
         <div class="req-label">Требования:</div>
         ${skill.requirements.map(([reqId, reqLevel]) => {
@@ -1296,18 +1297,41 @@ createSkillElement(skill) {
           const reqMet = reqSkill && reqSkill.currentLevel >= reqLevel;
           return `
             <div class="requirement ${reqMet ? 'met' : 'not-met'}">
-              ${reqSkill ? reqSkill.name : reqId} (${reqLevel})
+              ${reqSkill ? reqSkill.name : reqId} (ур. ${reqLevel})
             </div>
           `;
         }).join('')}
       </div>
-    ` : ''}
+    `;
+  }
+  
+  skillElement.innerHTML = `
+    <div class="skill-header">
+      <div class="skill-icon" style="color: ${skill.color || '#3498db'}">${skill.icon || '✨'}</div>
+      <div class="skill-info">
+        <div class="skill-name">${skill.name || 'Неизвестный навык'}</div>
+        <div class="skill-level">
+          Уровень: <span class="level-current">${skill.currentLevel || 0}</span>/
+          <span class="level-max">${skill.maxLevel || 1}</span>
+        </div>
+      </div>
+      <div class="skill-cost">
+        <div class="cost-icon">✨</div>
+        <div class="cost-value">${skill.cost || 1}</div>
+      </div>
+    </div>
+    
+    <div class="skill-description">
+      ${skill.description || 'Описание отсутствует'}
+    </div>
+    
+    ${requirementsHTML}
     
     <div class="skill-progress">
       <div class="progress-bar">
         <div class="progress-fill" style="width: ${progressPercent}%"></div>
       </div>
-      ${skill.type === 'active' ? '<div class="skill-type">Активный</div>' : ''}
+      ${skill.type === 'active' ? '<div class="skill-type">Активный навык</div>' : ''}
     </div>
     
     <div class="skill-actions">
@@ -1315,7 +1339,7 @@ createSkillElement(skill) {
         '<div class="skill-maxed">Максимальный уровень</div>' : 
         `<button class="btn-upgrade ${canUpgrade ? '' : 'disabled'}" 
                  data-skill-id="${skill.id}">
-           ${canUpgrade ? 'Прокачать' : 'Недоступно'}
+           ${canUpgrade ? 'Изучить' : 'Недоступно'}
          </button>`
       }
     </div>
@@ -1345,6 +1369,7 @@ upgradeSkill(skillId) {
     this.updateSkillPoints();
     this.renderSkillTree();
     this.updateActiveSkills();
+    this.updateSkillStats();
     
     // Обновляем характеристики игрока
     this.updateAllDisplays();
@@ -1378,6 +1403,8 @@ updateActiveSkills() {
   const list = container.querySelector('.active-skills-list');
   
   combatSkills.forEach(skill => {
+    if (!skill) return;
+    
     const skillElement = document.createElement('div');
     skillElement.className = 'active-skill';
     skillElement.dataset.skillId = skill.id;
@@ -1387,14 +1414,14 @@ updateActiveSkills() {
     
     skillElement.innerHTML = `
       <div class="active-skill-icon" style="color: ${getClassColor(player.classId)}">
-        ${skill.icon}
+        ${skill.icon || '✨'}
       </div>
       <div class="active-skill-info">
-        <div class="active-skill-name">${skill.name}</div>
+        <div class="active-skill-name">${skill.name || 'Навык'}</div>
         <div class="active-skill-cooldown">
           ${skill.currentCooldown > 0 ? 
-            `Перезарядка: ${skill.currentCooldown}с` : 
-            'Готов'}
+            `Перезарядка: ${Math.ceil(skill.currentCooldown)}с` : 
+            'Готов к использованию'}
         </div>
       </div>
       <div class="active-skill-cooldown-bar">
@@ -1402,8 +1429,66 @@ updateActiveSkills() {
       </div>
     `;
     
+    // Добавляем обработчик использования навыка
+    if (skill.currentCooldown <= 0) {
+      skillElement.addEventListener('click', () => {
+        this.showNotification('🎯 Навык', 'Активные навыки используются автоматически в бою', 'info');
+      });
+    }
+    
     list.appendChild(skillElement);
   });
+}
+
+updateSkillStats() {
+  if (!this.skillSystem) return;
+  
+  const stats = this.skillSystem.getSkillStats();
+  const totalLearned = document.getElementById('total-skills-learned');
+  const totalSpent = document.getElementById('total-points-spent');
+  
+  if (totalLearned) {
+    totalLearned.textContent = stats.totalSkills;
+  }
+  if (totalSpent) {
+    totalSpent.textContent = stats.totalPointsSpent;
+  }
+}
+
+// Обновление сцены навыков
+updateSkills() {
+  console.log('Обновление сцены навыков...');
+  
+  if (!player) {
+    console.warn('Игрок не загружен');
+    return;
+  }
+  
+  if (!this.skillSystem) {
+    this.initializeSkillSystem();
+  }
+  
+  this.updateSkillPoints();
+  this.renderSkillTree();
+  this.updateActiveSkills();
+  this.updateSkillStats();
+  
+  // Добавляем обработчик сброса навыков
+  const resetBtn = document.getElementById('btn-reset-skills');
+  if (resetBtn) {
+    resetBtn.onclick = () => {
+      if (this.skillSystem) {
+        const result = this.skillSystem.resetSkills();
+        if (result.success) {
+          this.showNotification('🔄 Навыки сброшены', result.message, 'success');
+          this.updateSkills();
+          this.updateAllDisplays();
+        } else {
+          this.showNotification('❌ Ошибка', result.message, 'error');
+        }
+      }
+    };
+  }
 }
 
   updateOptions() {
