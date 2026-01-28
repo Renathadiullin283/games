@@ -1,4 +1,4 @@
-/* style.css */
+/* style.css - Полная версия с исправленным инвентарем */
 * {
   margin: 0;
   padding: 0;
@@ -686,8 +686,7 @@ body {
   margin-right: 0.5rem;
 }
 
-/* Инвентарь - только круговое меню ячеек */
-
+/* Сцена инвентаря - ИСПРАВЛЕННАЯ ВЕРСИЯ БЕЗ ПЕРСОНАЖА ПО ЦЕНТРУ */
 .inventory-content {
   padding: 1.5rem;
   display: flex;
@@ -707,7 +706,7 @@ body {
   justify-content: center;
 }
 
-/* Убираем персонажа в центре - только круговое меню */
+/* Круг ячеек экипировки - большой и центральный */
 .equipment-circle {
   position: relative;
   width: 100%;
@@ -842,7 +841,7 @@ body {
   filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.6));
 }
 
-/* Новое позиционирование ячеек по кругу (большой круг) */
+/* Позиционирование ячеек по кругу */
 
 /* Оружие - сверху */
 [data-position="top"] {
@@ -1057,124 +1056,6 @@ body {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
-/* Адаптивность */
-@media (max-width: 768px) {
-  .inventory-main {
-    width: 380px;
-    height: 380px;
-  }
-  
-  .equipment-slot {
-    width: 75px;
-    height: 75px;
-  }
-  
-  .slot-icon {
-    font-size: 1.7rem;
-  }
-  
-  .slot-name {
-    font-size: 0.7rem;
-  }
-  
-  .slot-item {
-    font-size: 2rem;
-  }
-  
-  [data-position="top"] { top: 10px; }
-  [data-position="top-right"] { top: 70px; right: 70px; }
-  [data-position="right"] { right: 10px; }
-  [data-position="bottom-right"] { bottom: 70px; right: 70px; }
-  [data-position="bottom"] { bottom: 10px; }
-  [data-position="bottom-left"] { bottom: 70px; left: 70px; }
-  [data-position="left"] { left: 10px; }
-  [data-position="top-left"] { top: 70px; left: 70px; }
-}
-
-@media (max-width: 480px) {
-  .inventory-main {
-    width: 320px;
-    height: 320px;
-  }
-  
-  .equipment-slot {
-    width: 65px;
-    height: 65px;
-  }
-  
-  .slot-icon {
-    font-size: 1.5rem;
-  }
-  
-  .slot-name {
-    font-size: 0.65rem;
-    padding: 0.15rem 0.4rem;
-  }
-  
-  .slot-item {
-    font-size: 1.8rem;
-  }
-  
-  .equipment-circle::before {
-    width: 80px;
-    height: 80px;
-  }
-  
-  [data-position="top-right"] { top: 60px; right: 60px; }
-  [data-position="bottom-right"] { bottom: 60px; right: 60px; }
-  [data-position="bottom-left"] { bottom: 60px; left: 60px; }
-  [data-position="top-left"] { top: 60px; left: 60px; }
-}
-
-/* Анимация появления ячеек */
-@keyframes slotAppear {
-  0% {
-    opacity: 0;
-    transform: scale(0) rotate(-180deg);
-  }
-  60% {
-    opacity: 1;
-    transform: scale(1.1) rotate(10deg);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) rotate(0);
-  }
-}
-
-.equipment-slot {
-  animation: slotAppear 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) backwards;
-}
-
-/* Последовательное появление ячеек */
-[data-position="top"] { animation-delay: 0.1s; }
-[data-position="top-right"] { animation-delay: 0.15s; }
-[data-position="right"] { animation-delay: 0.2s; }
-[data-position="bottom-right"] { animation-delay: 0.25s; }
-[data-position="bottom"] { animation-delay: 0.3s; }
-[data-position="bottom-left"] { animation-delay: 0.35s; }
-[data-position="left"] { animation-delay: 0.4s; }
-[data-position="top-left"] { animation-delay: 0.45s; }
-
-/* Пульсация для пустых слотов */
-.equipment-slot:not(.equipped) .slot-item {
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% { opacity: 0.3; }
-  50% { opacity: 0.7; }
-  100% { opacity: 0.3; }
-}
-
-/* Улучшенная стилизация списка предметов */
-.items-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -1201,11 +1082,364 @@ body {
   border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Эффект при клике на ячейку */
-.equipment-slot:active {
-  transform: scale(0.95);
-  transition: transform 0.1s ease;
+.items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
 }
+
+.inventory-item {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.08) 0%, 
+    rgba(255, 255, 255, 0.03) 100%);
+  border-radius: 16px;
+  padding: 1rem;
+  border-left: 4px solid var(--common);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.inventory-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.02), 
+    transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.inventory-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 
+    0 10px 25px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.inventory-item:hover::before {
+  opacity: 1;
+}
+
+.inventory-item.equipped {
+  border-left-color: var(--success);
+  background: linear-gradient(135deg, 
+    rgba(0, 184, 148, 0.15) 0%, 
+    rgba(0, 184, 148, 0.05) 100%);
+}
+
+.inventory-item.equipped::after {
+  content: 'Экипировано';
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--success);
+  color: white;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.item-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.item-icon {
+  font-size: 1.5rem;
+}
+
+.item-name {
+  font-weight: 600;
+  flex: 1;
+  color: white;
+}
+
+.item-rarity {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.item-description {
+  font-size: 0.85rem;
+  color: var(--light-gray);
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+}
+
+.item-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.stat-badge {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.item-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.item-value {
+  font-size: 0.9rem;
+  color: var(--warning);
+  font-weight: 600;
+}
+
+.item-quantity {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.item-slot {
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+.empty-inventory, .shop-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--light-gray);
+}
+
+.empty-icon, .empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-text, .empty-text {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+.empty-hint, .empty-hint {
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+/* Модальные окна */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.modal.active {
+  display: flex;
+}
+
+.modal-content {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  border-radius: var(--radius-lg);
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.equipment-modal {
+  max-width: 600px;
+}
+
+.modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: white;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--light-gray);
+  font-size: 1.5rem;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.selected-slot-info {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border-left: 3px solid var(--info);
+}
+
+.current-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.current-item-icon {
+  font-size: 2rem;
+}
+
+.current-item-info {
+  flex: 1;
+}
+
+.current-item-name {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: white;
+}
+
+.current-item-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.empty-slot {
+  text-align: center;
+  padding: 1rem;
+  color: var(--light-gray);
+}
+
+.available-items h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: white;
+}
+
+.items-list-modal {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 1.5rem;
+}
+
+.modal-item {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all var(--transition-fast);
+}
+
+.modal-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.modal-item.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.btn-primary, .btn-secondary, .btn-danger {
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  border: 2px solid transparent;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(233, 69, 96, 0.4);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, var(--secondary) 0%, rgba(15, 52, 96, 0.8) 100%);
+  color: white;
+}
+
+.btn-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, var(--danger) 0%, #c0392b 100%);
+  color: white;
+}
+
+.btn-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}
+
 /* Сцена магазина */
 .shop-content {
   padding: 1.5rem;
@@ -1611,186 +1845,130 @@ body {
   background: rgba(255, 255, 255, 0.2);
 }
 
-/* Другие сцены */
-.skills-content, .options-content, .achievements-content, .leaderboard-content {
-  padding: 1.5rem;
+/* Адаптивность для инвентаря */
+@media (max-width: 768px) {
+  .inventory-main {
+    width: 380px;
+    height: 380px;
+  }
+  
+  .equipment-slot {
+    width: 75px;
+    height: 75px;
+  }
+  
+  .slot-icon {
+    font-size: 1.7rem;
+  }
+  
+  .slot-name {
+    font-size: 0.7rem;
+  }
+  
+  .slot-item {
+    font-size: 2rem;
+  }
+  
+  [data-position="top"] { top: 10px; }
+  [data-position="top-right"] { top: 70px; right: 70px; }
+  [data-position="right"] { right: 10px; }
+  [data-position="bottom-right"] { bottom: 70px; right: 70px; }
+  [data-position="bottom"] { bottom: 10px; }
+  [data-position="bottom-left"] { bottom: 70px; left: 70px; }
+  [data-position="left"] { left: 10px; }
+  [data-position="top-left"] { top: 70px; left: 70px; }
 }
 
-.skills-tree, .options-section {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+@media (max-width: 480px) {
+  .inventory-main {
+    width: 320px;
+    height: 320px;
+  }
+  
+  .equipment-slot {
+    width: 65px;
+    height: 65px;
+  }
+  
+  .slot-icon {
+    font-size: 1.5rem;
+  }
+  
+  .slot-name {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+  }
+  
+  .slot-item {
+    font-size: 1.8rem;
+  }
+  
+  .equipment-circle::before {
+    width: 80px;
+    height: 80px;
+  }
+  
+  [data-position="top-right"] { top: 60px; right: 60px; }
+  [data-position="bottom-right"] { bottom: 60px; right: 60px; }
+  [data-position="bottom-left"] { bottom: 60px; left: 60px; }
+  [data-position="top-left"] { top: 60px; left: 60px; }
+  
+  .mobile-menu {
+    display: flex;
+  }
+  
+  .scene {
+    padding-bottom: 80px;
+  }
 }
 
-.skill-category h3, .options-section h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  color: white;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+/* Анимация появления ячеек */
+@keyframes slotAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0) rotate(-180deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.1) rotate(10deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
 }
 
-.skill-list {
+.equipment-slot {
+  animation: slotAppear 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) backwards;
+}
+
+/* Последовательное появление ячеек */
+[data-position="top"] { animation-delay: 0.1s; }
+[data-position="top-right"] { animation-delay: 0.15s; }
+[data-position="right"] { animation-delay: 0.2s; }
+[data-position="bottom-right"] { animation-delay: 0.25s; }
+[data-position="bottom"] { animation-delay: 0.3s; }
+[data-position="bottom-left"] { animation-delay: 0.35s; }
+[data-position="left"] { animation-delay: 0.4s; }
+[data-position="top-left"] { animation-delay: 0.45s; }
+
+/* Пульсация для пустых слотов */
+.equipment-slot:not(.equipped) .slot-item {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.3; }
+  50% { opacity: 0.7; }
+  100% { opacity: 0.3; }
+}
+
+/* Улучшенная стилизация списка предметов */
+.items-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 1rem;
-}
-
-.skill {
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: var(--radius-md);
-  padding: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.skill-name {
-  font-weight: 600;
-  color: white;
-  margin-bottom: 0.25rem;
-}
-
-.skill-desc {
-  font-size: 0.85rem;
-  color: var(--light-gray);
-  margin-bottom: 0.5rem;
-}
-
-.skill-cost {
-  font-size: 0.8rem;
-  color: var(--warning);
-  margin-bottom: 0.75rem;
-}
-
-.btn-learn {
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
-  border: none;
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-md);
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all var(--transition-normal);
-  width: 100%;
-}
-
-.btn-learn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(233, 69, 96, 0.4);
-}
-
-.option {
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.option label {
-  font-size: 0.95rem;
-  color: var(--light-gray);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.option input[type="range"] {
-  width: 150px;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-full);
-  outline: none;
-  -webkit-appearance: none;
-}
-
-.option input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 20px;
-  height: 20px;
-  background: var(--accent);
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-.option input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-}
-
-.achievements-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.stat-item {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-  border-radius: var(--radius-md);
-  padding: 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.stat-label {
-  font-size: 0.9rem;
-  color: var(--light-gray);
-}
-
-.stat-value {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: white;
-}
-
-.leaderboard-tabs {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.leaderboard-tab {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-md);
-  padding: 0.75rem 1.25rem;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  color: var(--light-gray);
-}
-
-.leaderboard-tab:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-}
-
-.leaderboard-tab.active {
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
-  color: white;
-  border-color: transparent;
-}
-
-.player-position {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
-  margin-top: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.player-position h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  color: white;
+  margin-top: 1rem;
 }
 
 /* Скроллбар */
@@ -1825,131 +2003,8 @@ body {
   }
 }
 
-/* Адаптивность */
-@media (max-width: 768px) {
-  .scene-header {
-    padding: 0.75rem 1rem;
-    font-size: 1.1rem;
-  }
-  
-  .menu-buttons {
-    grid-template-columns: 1fr;
-  }
-  
-  .location-list {
-    grid-template-columns: 1fr;
-  }
-  
-  .inventory-main {
-    min-height: 250px;
-  }
-  
-  .equipment-circle {
-    height: 250px;
-    width: 250px;
-  }
-  
-  .equipment-slot {
-    width: 65px;
-    height: 65px;
-  }
-  
-  .slot-item {
-    font-size: 1.5rem;
-  }
-  
-  .items-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .shop-items {
-    grid-template-columns: 1fr;
-  }
-  
-  .hud-row {
-    grid-template-columns: 1fr;
-  }
-  
-  .mobile-menu {
-    display: flex;
-  }
-  
-  .scene {
-    padding-bottom: 80px;
-  }
-  
-  .character-stats {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  
-  .quick-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .player-stats {
-    grid-template-columns: 1fr;
-  }
-  
-  .shop-balance {
-    flex-direction: column;
-  }
-  
-  .balance-item {
-    min-width: 100%;
-  }
-  
-  .modal-content {
-    width: 95%;
-    margin: 10px;
-  }
-}
-
-@media (max-width: 480px) {
-  .scene-content, .menu-content, .battle-content, .inventory-content,
-  .shop-content, .skills-content, .options-content, .achievements-content,
-  .leaderboard-content {
-    padding: 1rem;
-  }
-  
-  .player-card {
-    flex-direction: column;
-    text-align: center;
-    gap: 1rem;
-  }
-  
-  .equipment-circle {
-    height: 220px;
-    width: 220px;
-  }
-  
-  .equipment-slot {
-    width: 55px;
-    height: 55px;
-  }
-  
-  .slot-name {
-    font-size: 0.7rem;
-  }
-  
-  .character-icon {
-    font-size: 3rem;
-  }
-  
-  .quick-stats {
-    grid-template-columns: 1fr;
-  }
-  
-  .modal-body {
-    padding: 1rem;
-  }
-  
-  .modal-actions {
-    flex-direction: column;
-  }
-  
-  .modal-actions button {
-    width: 100%;
-  }
+.inventory-item {
+  animation: newItem 0.5s ease-out;
 }
 
 /* Поддержка тёмной темы по умолчанию */
@@ -1960,11 +2015,6 @@ body {
     --secondary: #1b263b;
     --lightest-gray: #e0e1dd;
   }
-}
-
-/* Анимация для элементов инвентаря при добавлении */
-.inventory-item {
-  animation: newItem 0.5s ease-out;
 }
 
 /* Эффекты для предметов по редкости */
@@ -1997,14 +2047,14 @@ body {
 }
 
 /* Эффект пульсации для кнопок с уведомлениями */
-@keyframes pulse {
+@keyframes pulse-button {
   0% { box-shadow: 0 0 0 0 rgba(233, 69, 96, 0.7); }
   70% { box-shadow: 0 0 0 10px rgba(233, 69, 96, 0); }
   100% { box-shadow: 0 0 0 0 rgba(233, 69, 96, 0); }
 }
 
 .pulse {
-  animation: pulse 2s infinite;
+  animation: pulse-button 2s infinite;
 }
 
 /* Класс для скрытия элементов */
@@ -2047,3 +2097,9 @@ button:focus, input:focus, select:focus, textarea:focus {
 .shadow-sm { box-shadow: var(--shadow-sm); }
 .shadow-md { box-shadow: var(--shadow-md); }
 .shadow-lg { box-shadow: var(--shadow-lg); }
+
+/* Эффект при клике на ячейку */
+.equipment-slot:active {
+  transform: scale(0.95);
+  transition: transform 0.1s ease;
+}
