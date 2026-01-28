@@ -1,7 +1,7 @@
 // game.js - обновленная версия с системой опыта
 import { DEBUG_PLAYER } from "./debug.js";
 import { loadPlayer, savePlayer } from "./telegramSave.js";
-import { awardSkillPoints } from './main.js";'
+import { awardSkillPoints } from './main.js';
 
 export let player = null;
 
