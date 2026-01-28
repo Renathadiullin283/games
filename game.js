@@ -1,7 +1,7 @@
-// game.js - обновленная версия с системой опыта
+// game.js - исправленная версия
 import { DEBUG_PLAYER } from "./debug.js";
 import { loadPlayer, savePlayer } from "./telegramSave.js";
-import { awardSkillPoints } from './main.js';
+// УДАЛИТЬ: import { awardSkillPoints } from './main.js'; // <-- ЭТУ СТРОКУ УДАЛИТЬ
 
 export let player = null;
 
@@ -100,7 +100,7 @@ export function addExp(amount) {
   return leveledUp;
 }
 
-// Функция для начисления очков навыков
+// Функция для начисления очков навыков при повышении уровня
 function addSkillPointsForLevels(levelsGained) {
   if (!player) return;
   
@@ -128,6 +128,29 @@ function addSkillPointsForLevels(levelsGained) {
   }
 }
 
+// Функция для начисления очков навыков за достижения
+export function awardSkillPoints(amount, reason = '') {
+  if (!player) return 0;
+  
+  if (player.skillPoints === undefined) {
+    player.skillPoints = 0;
+  }
+  
+  player.skillPoints += amount;
+  
+  console.log(`✨ Награда: ${amount} очков навыков за ${reason}. Всего: ${player.skillPoints}`);
+  
+  // Показываем уведомление
+  if (window.sceneManager && window.sceneManager.showNotification) {
+    window.sceneManager.showNotification('✨ Награда за достижение', 
+      `Получено ${amount} очков навыков! ${reason}`, 'success');
+    window.sceneManager.updateAllDisplays();
+  }
+  
+  savePlayer(player);
+  
+  return player.skillPoints;
+}
 
 // Проверка доступности локации
 export function isLocationUnlocked(locationId) {
@@ -147,28 +170,7 @@ export function unlockLocation(locationId) {
   
   return false;
 }
-export function awardSkillPoints(amount, reason = '') {
-  if (!player) return;
-  
-  if (player.skillPoints === undefined) {
-    player.skillPoints = 0;
-  }
-  
-  player.skillPoints += amount;
-  
-  console.log(`✨ Награда: ${amount} очков навыков за ${reason}. Всего: ${player.skillPoints}`);
-  
-  // Обновляем UI через сцену
-  if (window.sceneManager) {
-    window.sceneManager.showNotification('✨ Награда за достижение', 
-      `Получено ${amount} очков навыков! ${reason}`, 'success');
-    window.sceneManager.updateAllDisplays();
-  }
-  
-  savePlayer(player);
-  
-  return player.skillPoints;
-}
+
 // Завершение локации
 export function completeLocation(locationId) {
   if (!player || !player.completedLocations) return false;
@@ -189,7 +191,5 @@ export function resetPlayerHp() {
   }
 }
 
-
 // Экспортируем промис для удобства
 export const playerReady = initPlayer();
-export { addExp, awardSkillPoints, initPlayer, player, playerReady, resetPlayerHp, isLocationUnlocked, unlockLocation, completeLocation };
