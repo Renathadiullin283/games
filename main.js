@@ -13,6 +13,7 @@ import {
   ShopSystem, 
   SHOP_CATEGORIES
 } from './shop.js';
+import { createSkillSystem, getClassIcon, getClassColor } from './skills.js';
 
 class SceneManager {
   constructor() {
