@@ -712,80 +712,83 @@ body {
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 10;
+  width: 120px; 
 }
 
 .character-display {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-  border-radius: 20px;
-  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+  border-radius: 16px;
+  padding: 0.8rem; /* Уменьшен padding */
   text-align: center;
-  border: 2px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 
-    0 10px 30px rgba(0, 0, 0, 0.3),
+    0 6px 20px rgba(0, 0, 0, 0.2),
     0 0 0 1px rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  min-width: 160px;
+  backdrop-filter: blur(5px);
+  width: 100%;
+  max-width: 120px; /* Ограничиваем максимальную ширину */
   transform: translateY(0);
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .character-display:hover {
   transform: translateY(-5px);
   box-shadow: 
-    0 15px 40px rgba(0, 0, 0, 0.4),
+    0 7px 20px rgba(0, 0, 0, 0.4),
     0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 .character-icon {
-  font-size: 3.5rem;
-  margin-bottom: 1rem;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  font-size: 1.6rem;
+  margin-bottom: 0.4rem;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.3));
   animation: float 3s ease-in-out infinite;
 }
 
 @keyframes float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-5px); }
 }
 
 .character-info {
-  margin-bottom: 1rem;
+  margin-bottom: 0.3rem;
 }
 
 .character-name {
-  font-size: 1.1rem;
+  font-size: 0.5rem;
   font-weight: 700;
   color: white;
-  margin-bottom: 0.25rem;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  margin-bottom: 0.2rem;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .character-level {
-  font-size: 0.85rem;
+  font-size: 0.5rem;
   color: var(--warning);
   background: linear-gradient(135deg, rgba(243, 156, 18, 0.15) 0%, rgba(230, 126, 34, 0.1) 100%);
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
+  padding: 0.1rem 0.4rem;
+  border-radius: 12px;
   display: inline-block;
-  border: 1px solid rgba(243, 156, 18, 0.3);
+  border: 1px solid rgba(243, 156, 18, 0.2);
 }
 
 .character-stats {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: center;
+  flex-direction: column; /* Вертикальное расположение статов */
+  gap: 0.3rem;
+  margin-top: 0.5rem;
 }
 
+
 .stat-item {
-  background: rgba(255, 255, 255, 0.07);
-  padding: 0.5rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.8rem;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0.2rem 0.4rem;
+  border-radius: 8px;
+  font-size: 0.5rem; /* Уменьшен размер шрифта */
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  justify-content: space-between;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   transition: all 0.2s ease;
 }
 
@@ -795,7 +798,7 @@ body {
 }
 
 .stat-icon {
-  font-size: 0.9rem;
+  font-size: 0.5rem;
   opacity: 0.9;
 }
 
