@@ -11,6 +11,10 @@ export async function initPlayer() {
   
   if (savedPlayer) {
     player = savedPlayer;
+    // Убедимся, что есть очки навыков
+    if (player.skillPoints === undefined) {
+      player.skillPoints = 0;
+    }
     console.log("✅ Игрок загружен из сохранения:", player);
   } else {
     // Создаем нового игрока
@@ -20,6 +24,7 @@ export async function initPlayer() {
       expToNextLevel: 100,
       gold: 100,
       gems: 0,
+      skillPoints: 1, // Начальные очки навыков
       classId: "warrior",
       stats: {
         hp: 100,
@@ -53,11 +58,13 @@ export function addExp(amount) {
   
   player.exp += amount;
   let leveledUp = false;
+  let levelsGained = 0; // Считаем сколько уровней получено
   
   // Проверка повышения уровня
   while (player.exp >= player.expToNextLevel) {
     player.exp -= player.expToNextLevel;
     player.level += 1;
+    levelsGained++;
     leveledUp = true;
     
     // Увеличение статов при повышении уровня
@@ -78,11 +85,48 @@ export function addExp(amount) {
   }
   
   if (leveledUp) {
+    // Начисляем очки навыков за уровни
+    addSkillPointsForLevels(levelsGained);
+    
+    // Обновляем UI
+    if (window.sceneManager) {
+      window.sceneManager.updateAllDisplays();
+    }
+    
     savePlayer(player);
   }
   
   return leveledUp;
 }
+
+// Функция для начисления очков навыков
+function addSkillPointsForLevels(levelsGained) {
+  if (!player) return;
+  
+  // Инициализируем очки навыков, если их нет
+  if (player.skillPoints === undefined) {
+    player.skillPoints = 0;
+  }
+  
+  // Начисляем очки за каждый уровень
+  let pointsGained = 0;
+  for (let i = 0; i < levelsGained; i++) {
+    // Базовая формула: 1 очко за уровень, +1 за каждые 5 уровней
+    const basePoints = 1;
+    const bonusPoints = Math.floor(player.level / 5);
+    pointsGained += basePoints + bonusPoints;
+  }
+  
+  player.skillPoints += pointsGained;
+  
+  console.log(`✨ Начислено ${pointsGained} очков навыков за ${levelsGained} уровень(ей). Всего: ${player.skillPoints}`);
+  
+  // Показываем уведомление
+  if (window.sceneManager && window.sceneManager.showNotification) {
+    window.sceneManager.showNotification('✨ Очки навыков', `Получено ${pointsGained} очков навыков!`, 'success');
+  }
+}
+
 
 // Проверка доступности локации
 export function isLocationUnlocked(locationId) {
