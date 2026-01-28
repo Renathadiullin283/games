@@ -704,6 +704,7 @@ formatItemStatsDetailed(stats) {
     this.updateMenu();
     this.updateBattle();
     this.updateInventory();
+    this.checkForNewSkillPoints(); 
     if (this.currentScene === 'shop') {
       this.updateShop();
     }
@@ -1691,6 +1692,22 @@ updateSkills() {
       });
     }
   }
+  checkForNewSkillPoints() {
+  if (!player || !this.skillSystem) return;
+  
+  // Проверяем, есть ли непотраченные очки навыков
+  if (player.skillPoints > 0) {
+    const skillsButton = document.querySelector('[data-scene="skills"]');
+    if (skillsButton) {
+      skillsButton.classList.add('has-skill-points');
+      skillsButton.innerHTML = `✨ Навыки (${player.skillPoints})`;
+      
+      // Добавляем всплывающую подсказку
+      skillsButton.title = `У вас есть ${player.skillPoints} непотраченных очков навыков!`;
+    }
+  }
+}
+  
 
   initializeNotifications() {
     window.showNotification = (title, message, type = 'info', duration = 5000) => {
