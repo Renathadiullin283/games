@@ -184,9 +184,15 @@ updateEquipmentSlots() {
     const slotElement = document.querySelector(`.equipment-slot[data-slot="${slotType}"]`);
     const slotItemElement = document.getElementById(`slot-${slotType}`);
     
-    if (!slotElement || !slotItemElement) return;
+    if (!slotElement || !slotItemElement) {
+      console.warn(`Не найден элемент для слота: ${slotType}`);
+      return;
+    }
     
     const equippedItem = this.inventorySystem.equipment[slotType];
+    
+    // Устанавливаем название слота для подсказки
+    slotElement.setAttribute('data-slot-name', this.inventorySystem.getSlotName(slotType));
     
     if (equippedItem) {
       // Если в слоте есть предмет
@@ -202,15 +208,19 @@ updateEquipmentSlots() {
       slotElement.classList.remove('equipped');
       slotItemElement.innerHTML = '';
       slotItemElement.title = '';
+      slotItemElement.style.color = '';
     }
     
-    // Добавляем обработчик клика
+    // Удаляем старый обработчик и добавляем новый
+    slotElement.onclick = null;
     slotElement.onclick = (e) => {
       e.stopPropagation();
+      console.log(`Клик по слоту: ${slotType}`);
       this.openEquipmentModal(slotType);
     };
   });
 }
+
 // Открытие модального окна для выбора предмета
 openEquipmentModal(slotType) {
   const modal = document.getElementById('equipment-select-modal');
