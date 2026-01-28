@@ -1,5 +1,5 @@
 // main.js
-import { initPlayer, player, playerReady } from './game.js';
+import { initPlayer, player, playerReady, addExp, awardSkillPoints } from './game.js'; 
 import { savePlayer, loadPlayer, debugSaveSystem } from './telegramSave.js';
 import { startBattle } from './battle.js';
 import { LOCATIONS } from './data.js';
