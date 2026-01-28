@@ -6,7 +6,7 @@ import { savePlayer } from './telegramSave.js';
 export class SkillSystem {
   constructor(player) {
     this.player = player;
-    this.skillPoints = this.loadSkillPoints();
+    this.skillPoints = player.skillPoints || 0;
     this.unlockedSkills = this.loadUnlockedSkills();
     this.skillTree = this.createSkillTree();
     this.activeSkills = this.loadActiveSkills();
@@ -19,10 +19,22 @@ export class SkillSystem {
     };
     
     console.log('✨ Система навыков загружена:', {
+      playerSkillPoints: player.skillPoints,
       skillPoints: this.skillPoints,
       unlockedSkills: this.unlockedSkills.length,
       activeSkills: this.activeSkills.length
     });
+        // Загружаем уровни навыков
+    this.loadSkillLevels();
+  }
+  // Геттер для получения актуальных очков навыков
+  get skillPoints() {
+    return this.player.skillPoints || 0;
+  }
+
+  // Сеттер для установки очков навыков
+  set skillPoints(value) {
+    this.player.skillPoints = value;
   }
 
   // Загрузка очков навыков
@@ -513,7 +525,7 @@ export class SkillSystem {
       return { success: false, message: 'Максимальный уровень достигнут' };
     }
 
-    // Проверяем очки навыков
+    // Проверяем очки навыков (используем геттер)
     if (this.skillPoints < skill.cost) {
       return { success: false, message: 'Недостаточно очков навыков' };
     }
@@ -525,6 +537,7 @@ export class SkillSystem {
 
     // Прокачиваем
     skill.currentLevel++;
+    // Уменьшаем очки через сеттер
     this.skillPoints -= skill.cost;
     
     // Добавляем в разблокированные
@@ -545,6 +558,11 @@ export class SkillSystem {
       message: `Навык "${skill.name}" повышен до уровня ${skill.currentLevel}`,
       skill: skill
     };
+  }
+
+  // Добавим метод для синхронизации очков
+  syncSkillPoints() {
+    this.skillPoints = this.player.skillPoints || 0;
   }
 
   // Применение эффекта навыка
