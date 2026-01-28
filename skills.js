@@ -1,6 +1,7 @@
 // skills.js - полная система навыков
-import { player, savePlayer } from './game.js';
+import { player } from './game.js';
 import { ITEMS_DB, ITEM_RARITY } from './inventory.js';
+import { savePlayer } from './telegramSave.js';
 
 export class SkillSystem {
   constructor(player) {
