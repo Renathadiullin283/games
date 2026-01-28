@@ -53,7 +53,19 @@ export async function initPlayer() {
   return player;
 }
 
-// Добавление опыта игроку
+// Функция для получения текущих очков навыков
+export function getSkillPoints() {
+  if (!player) return 0;
+  return player.skillPoints || 0;
+}
+
+// Функция для проверки, есть ли непотраченные очки
+export function hasUnspentSkillPoints() {
+  if (!player) return false;
+  return (player.skillPoints || 0) > 0;
+}
+
+// Обновленная функция начисления опыта
 export function addExp(amount) {
   if (!player) return false;
   
@@ -92,6 +104,8 @@ export function addExp(amount) {
     // Обновляем UI
     if (window.sceneManager) {
       window.sceneManager.updateAllDisplays();
+      window.sceneManager.showNotification('✨ Новый уровень!', 
+        `Уровень ${player.level}! Получено очков навыков`, 'success');
     }
     
     savePlayer(player);
@@ -101,6 +115,7 @@ export function addExp(amount) {
 }
 
 // Функция для начисления очков навыков при повышении уровня
+// Обновленная функция начисления очков навыков
 function addSkillPointsForLevels(levelsGained) {
   if (!player) return;
   
@@ -122,9 +137,9 @@ function addSkillPointsForLevels(levelsGained) {
   
   console.log(`✨ Начислено ${pointsGained} очков навыков за ${levelsGained} уровень(ей). Всего: ${player.skillPoints}`);
   
-  // Показываем уведомление
-  if (window.sceneManager && window.sceneManager.showNotification) {
-    window.sceneManager.showNotification('✨ Очки навыков', `Получено ${pointsGained} очков навыков!`, 'success');
+  // Обновляем систему навыков, если она существует
+  if (window.sceneManager && window.sceneManager.skillSystem) {
+    window.sceneManager.skillSystem.skillPoints = player.skillPoints;
   }
 }
 
