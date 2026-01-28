@@ -1856,8 +1856,10 @@ document.addEventListener('DOMContentLoaded', () => {
     scenes: window.sceneManager,
     save: () => savePlayer(player),
     load: () => loadPlayer(),
-    startBattle: (locId) => startBattle(locId)
+    startBattle: (locId) => startBattle(locId),
+    awardSkillPoints: awardSkillPoints
   };
+    window.awardSkillPoints = awardSkillPoints;
   
   console.log('🎮 Игра запущена!');
 });
