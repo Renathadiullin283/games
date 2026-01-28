@@ -354,51 +354,48 @@
     </div>
   </div>
 </div>
-  <!-- Сцена 5: Навыки -->
-  <div id="scene-skills" class="scene">
-    <header class="scene-header">
-      <button class="btn-back" data-scene="menu">← Назад</button>
-      <span>✨ Навыки</span>
-    </header>
+
+  <!-- Сцена навыков (обновленная) -->
+<div id="scene-skills" class="scene">
+  <header class="scene-header">
+    <button class="btn-back" data-scene="menu">← Назад</button>
+    <span>✨ Навыки</span>
+  </header>
+  
+  <div class="skills-content">
+    <!-- Отображение очков навыков -->
+    <div class="skill-points-display">
+      <div class="points-label">Доступно очков навыков</div>
+      <div id="skill-points" class="points-count">0</div>
+      <div class="points-hint">Получайте очки навыков при повышении уровня</div>
+    </div>
     
-    <div class="skills-content">
-      <div class="skills-info">
-        <div>Очки навыков: <span id="skill-points">0</span></div>
+    <!-- Дерево навыков -->
+    <div id="skills-tree" class="skills-tree"></div>
+    
+    <!-- Активные навыки -->
+    <div id="active-skills" class="active-skills-container">
+      <!-- Будет заполняться через JS -->
+    </div>
+    
+    <!-- Кнопка сброса навыков -->
+    <button id="btn-reset-skills" class="btn-reset-skills">
+      🔄 Сбросить все навыки
+    </button>
+    
+    <!-- Статистика навыков -->
+    <div class="skill-stats">
+      <div class="stat-item">
+        <span class="stat-label">Всего прокачано:</span>
+        <span id="total-skills-learned" class="stat-value">0</span>
       </div>
-      
-      <div class="skills-tree">
-        <div class="skill-category">
-          <h3>⚔️ Атака</h3>
-          <div class="skill-list">
-            <div class="skill" data-skill="power-strike">
-              <div class="skill-name">Мощный удар</div>
-              <div class="skill-desc">+20% к урону</div>
-              <div class="skill-cost">1 очко</div>
-              <button class="btn-learn">Изучить</button>
-            </div>
-            <div class="skill" data-skill="crit-master">
-              <div class="skill-name">Крит. мастер</div>
-              <div class="skill-desc">+10% к шансу крита</div>
-              <div class="skill-cost">2 очка</div>
-              <button class="btn-learn">Изучить</button>
-            </div>
-          </div>
-        </div>
-        
-        <div class="skill-category">
-          <h3>🛡️ Защита</h3>
-          <div class="skill-list">
-            <div class="skill" data-skill="iron-skin">
-              <div class="skill-name">Железная кожа</div>
-              <div class="skill-desc">+15% к защите</div>
-              <div class="skill-cost">1 очко</div>
-              <button class="btn-learn">Изучить</button>
-            </div>
-          </div>
-        </div>
+      <div class="stat-item">
+        <span class="stat-label">Очков потрачено:</span>
+        <span id="total-points-spent" class="stat-value">0</span>
       </div>
     </div>
   </div>
+</div>
  <!-- Сцена 7: Достижения -->
   <div id="scene-achievements" class="scene">
   <header class="scene-header">
